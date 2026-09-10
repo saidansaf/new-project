@@ -15,9 +15,8 @@ services:
         value: "False"
       - key: ALLOWED_HOSTS
         value: "*"
-      # DATABASE_URL atayin berilmagan — Django avtomatik SQLite'ga o'tadi
-      # (backend/config/settings.py: DATABASE_URL bo'sh bo'lsa sqlite fayl ishlatiladi).
-      # Shu bilan hammasi — backend, bot, baza — BITTA Render konteynerida ishlaydi.
+      - key: DATABASE_URL
+        sync: false  # Render UI'da qo'lda kiritiladi (maxfiy — reponi committed emas)
       - key: REDIS_URL
         fromService:
           name: edunest-redis
