@@ -34,6 +34,10 @@ services:
         value: edu_saidansaf_bot
       - key: CORS_ALLOW_ALL_ORIGINS
         value: "True"
+      - key: GROQ_API_KEY
+        sync: false  # AI chat uchun — Render UI'da qo'lda kiritiladi
+      - key: GROQ_MODEL
+        value: openai/gpt-oss-20b
 
   # --- Redis (kesh, Channels layer) ---
   - type: redis

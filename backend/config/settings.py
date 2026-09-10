@@ -179,3 +179,7 @@ BOT_API_SECRET = env('BOT_API_SECRET', default='change-me-bot-secret')
 CLICK_MERCHANT_ID = env('CLICK_MERCHANT_ID', default='')
 CLICK_SECRET_KEY = env('CLICK_SECRET_KEY', default='')
 PAYME_MERCHANT_ID = env('PAYME_MERCHANT_ID', default='')
+
+# --- AI chat (Groq) ---
+GROQ_API_KEY = env('GROQ_API_KEY', default='')
+GROQ_MODEL = env('GROQ_MODEL', default='openai/gpt-oss-20b')

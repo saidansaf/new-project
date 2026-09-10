@@ -33,10 +33,19 @@ export async function renderNavbar(activePage = '') {
           user
             ? `
                ${user.current_streak > 0 ? `<span class="navbar-streak" title="Kunlik streak">🔥 ${user.current_streak}</span>` : ''}
-               <a href="dashboard.html" class="bell-btn" id="bellBtn" title="Bildirishnomalar">
-                 🔔<span id="bellBadge" class="bell-badge" hidden>0</span>
+               <div class="bell-wrap">
+                 <button class="bell-btn" id="bellBtn" title="Bildirishnomalar" type="button">
+                   🔔<span id="bellBadge" class="bell-badge" hidden>0</span>
+                 </button>
+                 <div id="bellDropdown" class="bell-dropdown" hidden>
+                   <div class="bell-dropdown-title">Bildirishnomalar</div>
+                   <div id="bellList"><p class="muted" style="padding:12px;">Yuklanmoqda...</p></div>
+                   <a href="dashboard.html" class="bell-dropdown-footer">Barchasini ko'rish →</a>
+                 </div>
+               </div>
+               <a href="dashboard.html" class="navbar-avatar" title="${escapeHtml(user.username)}">
+                 ${user.avatar ? `<img src="${user.avatar}" alt="avatar" />` : escapeHtml((user.username || '?').charAt(0).toUpperCase())}
                </a>
-               <span class="navbar-user">👤 ${escapeHtml(user.username)}</span>
                <button id="logoutBtn" class="btn btn-ghost btn-sm">Chiqish</button>`
             : `${link('login.html', 'Kirish', 'login')}
                <a href="register.html" class="btn btn-primary btn-sm">Ro'yxatdan o'tish</a>`
@@ -53,9 +62,49 @@ export async function renderNavbar(activePage = '') {
     });
   }
 
-  if (user) loadUnreadCount();
+  if (user) {
+    bindBell();
+    loadUnreadCount();
+  }
 
   return user;
+}
+
+function bindBell() {
+  const btn = document.getElementById('bellBtn');
+  const dropdown = document.getElementById('bellDropdown');
+  if (!btn || !dropdown) return;
+
+  btn.addEventListener('click', async (e) => {
+    e.stopPropagation();
+    const willOpen = dropdown.hidden;
+    dropdown.hidden = !willOpen;
+    if (willOpen) await loadBellList();
+  });
+
+  document.addEventListener('click', (e) => {
+    if (!dropdown.hidden && !dropdown.contains(e.target) && e.target !== btn) {
+      dropdown.hidden = true;
+    }
+  });
+}
+
+async function loadBellList() {
+  const listEl = document.getElementById('bellList');
+  try {
+    const data = await api.get('/api/notifications/', { auth: true });
+    const items = (data.results ?? data).slice(0, 6);
+    listEl.innerHTML = items.length
+      ? items.map((n) => `
+          <div class="bell-item ${n.is_read ? '' : 'unread'}">
+            <div>${escapeHtml(n.message)}</div>
+            <div class="bell-item-date">${new Date(n.created_at).toLocaleDateString('uz-UZ')}</div>
+          </div>
+        `).join('')
+      : '<p class="muted" style="padding:12px;">Hozircha bildirishnoma yo\'q.</p>';
+  } catch {
+    listEl.innerHTML = '<p class="muted" style="padding:12px;">Yuklab bo\'lmadi.</p>';
+  }
 }
 
 async function loadUnreadCount() {
