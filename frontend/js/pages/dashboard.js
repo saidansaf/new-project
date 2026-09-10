@@ -21,6 +21,8 @@ function renderProfile(user) {
     <div class="list-item"><span>Email</span><strong>${escapeHtml(user.email)}</strong></div>
     <div class="list-item"><span>Rol</span><span class="badge">${ROLE_LABEL[user.role] || user.role}</span></div>
     ${user.phone ? `<div class="list-item"><span>Telefon</span><strong>${escapeHtml(user.phone)}</strong></div>` : ''}
+    <div class="list-item"><span>🔥 Kunlik streak</span><strong>${user.current_streak} kun</strong></div>
+    <div class="list-item"><span>🏆 Eng uzun streak</span><strong>${user.longest_streak} kun</strong></div>
   `;
 }
 

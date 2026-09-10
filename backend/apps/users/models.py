@@ -14,6 +14,11 @@ class User(AbstractUser):
     phone = models.CharField(max_length=20, blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
 
+    # Kunlik streak: har kuni tizimga kirganda +1, bir kun o'tkazib yuborilsa 0'dan boshlanadi.
+    current_streak = models.PositiveIntegerField(default=0)
+    longest_streak = models.PositiveIntegerField(default=0)
+    last_active_date = models.DateField(null=True, blank=True)
+
     def __str__(self):
         return self.username
 
