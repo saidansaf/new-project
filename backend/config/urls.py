@@ -8,7 +8,7 @@ from drf_spectacular.views import SpectacularAPIView, SpectacularSwaggerView
 
 def api_root(request):
     return JsonResponse({
-        'message': "Bu EduNest backend (REST API). Sayt (frontend) boshqa manzilda: http://127.0.0.1:5500/index.html",
+        'message': "Bu EduNest backend (REST API). Sayt (frontend) alohida joyda joylashtiriladi.",
         'api_docs': request.build_absolute_uri('/api/docs/'),
         'admin': request.build_absolute_uri('/admin/'),
     })
