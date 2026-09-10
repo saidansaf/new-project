@@ -1,0 +1,54 @@
+<!doctype html>
+<html lang="uz">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Ro'yxatdan o'tish — EduNest</title>
+  <link rel="stylesheet" href="css/style.css" />
+</head>
+<body>
+  <div id="navbar"></div>
+
+  <div class="auth-wrapper">
+    <h2>Ro'yxatdan o'tish 🚀</h2>
+    <div id="alertBox"></div>
+    <form id="registerForm">
+      <div class="form-row">
+        <div class="form-group">
+          <label for="firstName">Ism</label>
+          <input type="text" id="firstName" />
+        </div>
+        <div class="form-group">
+          <label for="lastName">Familiya</label>
+          <input type="text" id="lastName" />
+        </div>
+      </div>
+      <div class="form-group">
+        <label for="username">Foydalanuvchi nomi</label>
+        <input type="text" id="username" required autocomplete="username" />
+      </div>
+      <div class="form-group">
+        <label for="email">Email</label>
+        <input type="email" id="email" required autocomplete="email" />
+      </div>
+      <div class="form-group">
+        <label for="password">Parol</label>
+        <input type="password" id="password" required autocomplete="new-password" />
+      </div>
+      <div class="form-group">
+        <label for="role">Rol</label>
+        <select id="role">
+          <option value="student">Talaba</option>
+          <option value="instructor">O'qituvchi</option>
+        </select>
+      </div>
+      <button type="submit" class="btn btn-primary btn-block" id="submitBtn">Ro'yxatdan o'tish</button>
+    </form>
+    <div class="form-footer">
+      Akkountingiz bormi? <a href="login.html">Kiring</a>
+    </div>
+  </div>
+
+  <script type="module" src="js/pages/register.js"></script>
+</body>
+</html>

@@ -1,0 +1,82 @@
+services:
+  db:
+    image: postgres:16-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: edunest
+      POSTGRES_USER: edunest
+      POSTGRES_PASSWORD: edunest
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    ports:
+      - "5432:5432"
+
+  redis:
+    image: redis:7-alpine
+    restart: unless-stopped
+    ports:
+      - "6379:6379"
+
+  backend:
+    build: ./backend
+    restart: unless-stopped
+    env_file:
+      - ./backend/.env
+    environment:
+      DATABASE_URL: postgres://edunest:edunest@db:5432/edunest
+      REDIS_URL: redis://redis:6379/0
+      USE_REDIS_CHANNEL_LAYER: "True"
+      CELERY_TASK_ALWAYS_EAGER: "False"
+    depends_on:
+      - db
+      - redis
+    ports:
+      - "8000:8000"
+    volumes:
+      - media_data:/app/media
+      - static_data:/app/staticfiles
+
+  celery_worker:
+    build: ./backend
+    restart: unless-stopped
+    command: celery -A config worker -l info
+    env_file:
+      - ./backend/.env
+    environment:
+      DATABASE_URL: postgres://edunest:edunest@db:5432/edunest
+      REDIS_URL: redis://redis:6379/0
+    depends_on:
+      - db
+      - redis
+      - backend
+    volumes:
+      - media_data:/app/media
+
+  celery_beat:
+    build: ./backend
+    restart: unless-stopped
+    command: celery -A config beat -l info
+    env_file:
+      - ./backend/.env
+    environment:
+      DATABASE_URL: postgres://edunest:edunest@db:5432/edunest
+      REDIS_URL: redis://redis:6379/0
+    depends_on:
+      - db
+      - redis
+      - backend
+
+  bot:
+    build: ./bot
+    restart: unless-stopped
+    env_file:
+      - ./bot/.env
+    environment:
+      API_BASE_URL: http://backend:8000
+    depends_on:
+      - backend
+
+volumes:
+  postgres_data:
+  media_data:
+  static_data:
