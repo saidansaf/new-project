@@ -28,7 +28,15 @@ form.addEventListener('submit', async (e) => {
   try {
     const data = await api.post('/api/auth/login/', { username, password });
     setTokens(data.access, data.refresh);
-    window.location.href = 'dashboard.html';
+
+    let redirectTo = 'dashboard.html';
+    try {
+      const me = await api.get('/api/auth/me/', { auth: true });
+      if (me.is_staff) redirectTo = 'admin-panel.html';
+    } catch {
+      // profil olinmasa ham oddiy dashboard'ga yuboraveramiz
+    }
+    window.location.href = redirectTo;
   } catch (err) {
     if (err instanceof ApiError && err.status === 401) {
       showError("Login yoki parol noto'g'ri.");

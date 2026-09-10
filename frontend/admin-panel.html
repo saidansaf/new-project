@@ -1,0 +1,69 @@
+<!doctype html>
+<html lang="uz">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Admin Panel — EduNest</title>
+  <link rel="stylesheet" href="css/style.css" />
+  <style>
+    .admin-topbar {
+      background: #111827;
+      color: #fff;
+      padding: 16px 24px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+    .admin-topbar .brand { font-weight: 800; font-size: 18px; }
+    .admin-topbar .brand span { color: #818cf8; }
+    .stats-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+      gap: 14px;
+      margin: 24px 0;
+    }
+    .stat-card {
+      background: var(--color-surface);
+      border: 1px solid var(--color-border);
+      border-radius: var(--radius);
+      padding: 18px;
+      text-align: center;
+    }
+    .stat-card .value { font-size: 28px; font-weight: 800; color: var(--color-primary); }
+    .stat-card .label { font-size: 12px; color: var(--color-text-muted); margin-top: 4px; }
+    .admin-tabs { display: flex; gap: 8px; margin: 24px 0 12px; border-bottom: 1px solid var(--color-border); }
+    .admin-tab {
+      padding: 10px 16px; cursor: pointer; font-weight: 600; color: var(--color-text-muted);
+      border-bottom: 2px solid transparent;
+    }
+    .admin-tab.active { color: var(--color-primary); border-bottom-color: var(--color-primary); }
+    table.data-table { width: 100%; border-collapse: collapse; background: var(--color-surface); border-radius: var(--radius); overflow: hidden; }
+    table.data-table th, table.data-table td { padding: 10px 14px; text-align: left; border-bottom: 1px solid var(--color-border); font-size: 14px; }
+    table.data-table th { background: var(--color-primary-light); color: var(--color-primary-dark); font-size: 12px; text-transform: uppercase; }
+    .status-active { color: var(--color-success); font-weight: 700; }
+    .status-blocked { color: var(--color-danger); font-weight: 700; }
+  </style>
+</head>
+<body>
+  <div class="admin-topbar">
+    <div class="brand">🛡️ EduNest <span>Admin</span></div>
+    <div><a href="index.html" style="color:#cbd5e1;font-size:13px;margin-right:16px;">← Saytga qaytish</a><button id="logoutBtn" class="btn btn-ghost btn-sm" style="color:#fca5a5;">Chiqish</button></div>
+  </div>
+
+  <div class="container">
+    <div id="alertBox" style="margin-top:16px;"></div>
+
+    <div id="statsGrid" class="stats-grid"></div>
+
+    <div class="admin-tabs">
+      <div class="admin-tab active" data-tab="users">👥 Foydalanuvchilar</div>
+      <div class="admin-tab" data-tab="courses">📚 Tasdiqlash kutilyapti</div>
+    </div>
+
+    <div id="tabUsers"><p class="muted">Yuklanmoqda...</p></div>
+    <div id="tabCourses" hidden><p class="muted">Yuklanmoqda...</p></div>
+  </div>
+
+  <script type="module" src="js/pages/admin-panel.js"></script>
+</body>
+</html>

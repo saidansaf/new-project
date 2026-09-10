@@ -40,6 +40,7 @@ INSTALLED_APPS = [
     'apps.ai_recommend',
     'apps.certificates',
     'apps.telegram_bot',
+    'apps.admin_panel',
 ]
 
 MIDDLEWARE = [
