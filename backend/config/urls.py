@@ -22,6 +22,7 @@ urlpatterns = [
     path('api/certificates/', include('apps.certificates.urls')),
     path('api/telegram/', include('apps.telegram_bot.urls')),
     path('api/admin-panel/', include('apps.admin_panel.urls')),
+    path('api/typing/', include('apps.typing_test.urls')),
 
     path('api/schema/', SpectacularAPIView.as_view(), name='schema'),
     path('api/docs/', SpectacularSwaggerView.as_view(url_name='schema'), name='docs'),

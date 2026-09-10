@@ -24,6 +24,7 @@ export async function renderNavbar(activePage = '') {
       <a href="index.html" class="navbar-brand">🎓 EduNest</a>
       <div class="navbar-links">
         ${link('index.html', 'Kurslar', 'courses')}
+        ${link('typing-test.html', '⌨️ Typing', 'typing')}
         ${user ? link('dashboard.html', 'Dashboard', 'dashboard') : ''}
         ${isInstructor ? link('create-course.html', 'Kurs yaratish', 'create-course') : ''}
         ${user && user.is_staff ? link('admin-panel.html', 'Admin', 'admin') : ''}

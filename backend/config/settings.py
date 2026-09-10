@@ -41,6 +41,7 @@ INSTALLED_APPS = [
     'apps.certificates',
     'apps.telegram_bot',
     'apps.admin_panel',
+    'apps.typing_test',
 ]
 
 MIDDLEWARE = [
