@@ -19,8 +19,10 @@ EduNest/
 │   ├── handlers/
 │   ├── requirements.txt
 │   └── Dockerfile
-├── docker-compose.yml   # Lokal: db, redis, backend, celery_worker, celery_beat, bot
-├── render.yaml          # Render.com blueprint (bitta fayldan bir zumda deploy)
+├── docker-compose.yml   # Lokal: db, redis, backend, celery_worker, celery_beat, bot (alohida xizmatlar)
+├── Dockerfile           # Render deploy uchun: backend+bot BITTA konteynerda (bepul tarif uchun)
+├── entrypoint.sh         # Dockerfile'ning ishga tushirish skripti (migrate + bot + daphne)
+├── render.yaml          # Render.com blueprint (bitta web xizmat + Redis)
 └── README.md
 ```
 
@@ -69,14 +71,29 @@ docker compose up --build
 
 Xizmatlar: `backend` (8000-port), `bot`, `celery_worker`, `celery_beat`, `db` (Postgres), `redis`.
 
-## 3. Render.com'ga deploy
+## 3. Render.com'ga deploy (bepul tarif, bitta xizmat)
 
-1. Repozitoriyni GitHub'ga push qiling.
-2. Render Dashboard → **New +** → **Blueprint** → shu repo'ni tanlang (`render.yaml` avtomatik o'qiladi).
-3. So'raladigan maxfiy qiymatlarni kiriting: `BOT_TOKEN`, `BOT_API_SECRET` (backend va bot uchun bir xil).
-4. Render avtomatik ravishda quyidagilarni yaratadi: `edunest-backend` (web), `edunest-celery-worker`,
-   `edunest-celery-beat`, `edunest-bot`, `edunest-redis`, `edunest-db` (Postgres).
-5. Deploy tugagach backend URL orqali `/api/docs/` ochib tekshiring.
+Render'ning bepul tarifida **Background Worker** mavjud emas va bitta akkauntda faqat **bitta
+bepul PostgreSQL** bo'ladi. Shu sababli production uchun repo ildizidagi `Dockerfile` backend
+va Telegram botni **bitta konteynerda** birga ishga tushiradi (bot fon jarayon sifatida,
+Django esa asosiy web-server sifatida), Celery esa `CELERY_TASK_ALWAYS_EAGER=True` orqali
+sinxron ishlaydi (alohida worker shart emas).
+
+1. Tashqi bepul PostgreSQL oling — masalan [neon.tech](https://neon.tech) yoki
+   [supabase.com](https://supabase.com) — va ulanish satrini (`postgres://user:pass@host/db`)
+   nusxalab oling.
+2. Repozitoriyni GitHub'ga push qiling.
+3. Render Dashboard → **Blueprints** → **New Blueprint Instance** → shu repo'ni tanlang
+   (`render.yaml` avtomatik o'qiladi).
+4. So'raladigan maxfiy qiymatlarni kiriting:
+   - `DATABASE_URL` — 1-qadamdagi Postgres ulanish satri
+   - `BOT_TOKEN` — [@BotFather](https://t.me/BotFather)dan olingan token
+5. **Apply** bosing — Render `edunest-backend` (web) va `edunest-redis`ni yaratadi va deploy qiladi.
+6. Deploy tugagach backend URL (masalan `https://edunest-backend.onrender.com`) orqali
+   `/api/docs/` ochib tekshiring; Telegram botga `/start` yozib sinang.
+7. Frontendni ham deploy qilmoqchi bo'lsangiz, `frontend/js/config.js` ichidagi
+   `API_BASE_URL`ni shu Render URL'ga o'zgartirib, frontend'ni Render Static Site
+   (bepul) yoki GitHub Pages orqali joylashtiring.
 
 To'liq qadamlar TZ hujjatining 8-bo'limida yozilgan.
 

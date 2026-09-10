@@ -1,16 +1,12 @@
-databases:
-  - name: edunest-db
-    plan: free
-    databaseName: edunest
-    user: edunest
-
 services:
-  # --- Django backend (web, Dockerfile orqali) ---
+  # --- Bitta xizmat: Django backend + Telegram bot (bir konteynerda) ---
+  # Celery fon vazifalar CELERY_TASK_ALWAYS_EAGER=True orqali sinxron bajariladi,
+  # chunki Render bepul tarifida alohida Background Worker mavjud emas.
   - type: web
     name: edunest-backend
     runtime: docker
-    dockerfilePath: ./backend/Dockerfile
-    dockerContext: ./backend
+    dockerfilePath: ./Dockerfile
+    dockerContext: .
     plan: free
     envVars:
       - key: SECRET_KEY
@@ -20,9 +16,7 @@ services:
       - key: ALLOWED_HOSTS
         value: "*"
       - key: DATABASE_URL
-        fromDatabase:
-          name: edunest-db
-          property: connectionString
+        sync: false  # Tashqi Postgres (masalan Neon.tech) ulanish manzili shu yerga qo'yiladi
       - key: REDIS_URL
         fromService:
           name: edunest-redis
@@ -31,70 +25,17 @@ services:
       - key: USE_REDIS_CHANNEL_LAYER
         value: "True"
       - key: CELERY_TASK_ALWAYS_EAGER
-        value: "False"
-      - key: BOT_API_SECRET
+        value: "True"
+      - key: BOT_TOKEN
         sync: false
+      - key: BOT_API_SECRET
+        generateValue: true
+      - key: TELEGRAM_BOT_USERNAME
+        value: edu_saidansaf_bot
       - key: CORS_ALLOW_ALL_ORIGINS
         value: "True"
 
-  # --- Celery worker (fon vazifalar) ---
-  - type: worker
-    name: edunest-celery-worker
-    runtime: docker
-    dockerfilePath: ./backend/Dockerfile
-    dockerContext: ./backend
-    dockerCommand: celery -A config worker -l info
-    plan: free
-    envVars:
-      - key: DATABASE_URL
-        fromDatabase:
-          name: edunest-db
-          property: connectionString
-      - key: REDIS_URL
-        fromService:
-          name: edunest-redis
-          type: redis
-          property: connectionString
-      - key: SECRET_KEY
-        sync: false
-
-  # --- Celery beat (rejalashtirilgan vazifalar) ---
-  - type: worker
-    name: edunest-celery-beat
-    runtime: docker
-    dockerfilePath: ./backend/Dockerfile
-    dockerContext: ./backend
-    dockerCommand: celery -A config beat -l info
-    plan: free
-    envVars:
-      - key: DATABASE_URL
-        fromDatabase:
-          name: edunest-db
-          property: connectionString
-      - key: REDIS_URL
-        fromService:
-          name: edunest-redis
-          type: redis
-          property: connectionString
-      - key: SECRET_KEY
-        sync: false
-
-  # --- Telegram bot (polling rejimida background worker) ---
-  - type: worker
-    name: edunest-bot
-    runtime: docker
-    dockerfilePath: ./bot/Dockerfile
-    dockerContext: ./bot
-    plan: free
-    envVars:
-      - key: BOT_TOKEN
-        sync: false
-      - key: API_BASE_URL
-        sync: false  # backend deploy bo'lgach, uning https://...onrender.com manzilini shu yerga qo'yasiz
-      - key: BOT_API_SECRET
-        sync: false
-
-  # --- Redis (kesh, Celery broker, Channels layer) ---
+  # --- Redis (kesh, Channels layer) ---
   - type: redis
     name: edunest-redis
     plan: free
