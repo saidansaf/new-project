@@ -27,3 +27,7 @@ class ProgressUpdateSerializer(serializers.ModelSerializer):
     class Meta:
         model = Enrollment
         fields = ('progress_percent',)
+
+
+class WatchLessonSerializer(serializers.Serializer):
+    lesson = serializers.IntegerField()

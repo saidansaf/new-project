@@ -1,5 +1,7 @@
 from rest_framework import serializers
 
+from apps.quizzes.models import Quiz
+
 from .models import Category, Course, Lesson, Section
 
 
@@ -17,10 +19,14 @@ class LessonSerializer(serializers.ModelSerializer):
 
 class SectionSerializer(serializers.ModelSerializer):
     lessons = LessonSerializer(many=True, read_only=True)
+    quiz_id = serializers.SerializerMethodField()
 
     class Meta:
         model = Section
-        fields = ('id', 'course', 'title', 'order', 'lessons')
+        fields = ('id', 'course', 'title', 'order', 'lessons', 'quiz_id')
+
+    def get_quiz_id(self, obj):
+        return Quiz.objects.filter(section=obj).values_list('id', flat=True).first()
 
 
 class CourseListSerializer(serializers.ModelSerializer):

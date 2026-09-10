@@ -1,8 +1,12 @@
+from django.urls import path
 from rest_framework.routers import DefaultRouter
 
-from .views import EnrollmentViewSet
+from .views import EnrollmentViewSet, WatchedLessonsView, WatchLessonView
 
 router = DefaultRouter()
 router.register('', EnrollmentViewSet, basename='enrollment')
 
-urlpatterns = router.urls
+urlpatterns = [
+    path('watch-lesson/', WatchLessonView.as_view(), name='watch-lesson'),
+    path('watched-lessons/', WatchedLessonsView.as_view(), name='watched-lessons'),
+] + router.urls

@@ -1,9 +1,11 @@
 import { api, ApiError } from '../api.js';
 import { isAuthenticated } from '../auth.js';
 import { renderNavbar, escapeHtml } from '../navbar.js';
+import { createPlayer, extractYouTubeId } from '../youtube.js';
 
 const courseId = new URLSearchParams(window.location.search).get('id');
 const alertBox = document.getElementById('alertBox');
+const playerPanel = document.getElementById('playerPanel');
 
 if (!courseId) {
   alertBox.innerHTML = '<div class="alert alert-error">Kurs ID ko\'rsatilmagan.</div>';
@@ -12,6 +14,10 @@ if (!courseId) {
 
 let currentUser = null;
 let currentEnrollment = null;
+let currentCourse = null;
+let watchedLessonIds = new Set();
+let activeLessonId = null;
+let ytPlayer = null;
 
 const LEVEL_LABEL = { beginner: "Boshlang'ich", intermediate: "O'rta", advanced: 'Yuqori' };
 
@@ -30,6 +36,19 @@ async function findMyEnrollment() {
   }
 }
 
+async function loadWatchedLessons() {
+  if (!isAuthenticated()) return;
+  try {
+    const ids = await api.get('/api/enrollments/watched-lessons/', {
+      auth: true,
+      params: { course: courseId },
+    });
+    watchedLessonIds = new Set(ids);
+  } catch {
+    watchedLessonIds = new Set();
+  }
+}
+
 function renderHeader(course) {
   const price = Number(course.price) === 0 ? "Bepul" : `${course.price} so'm`;
   const rating = course.average_rating ? `⭐ ${course.average_rating}` : "Hali baholanmagan";
@@ -42,8 +61,7 @@ function renderHeader(course) {
     actionHtml = `
       <div class="badge">✅ Siz ro'yxatdan o'tgansiz</div>
       <div class="progress-bar" style="margin-top:8px;"><div class="progress-bar-fill" style="width:${pct}%"></div></div>
-      <div class="muted" style="margin-top:4px;">Progress: ${pct}%</div>
-      ${pct < 100 ? `<button id="progressBtn" class="btn btn-outline btn-block" style="margin-top:10px;">+25% progress</button>` : ''}
+      <div class="muted" style="margin-top:4px;">Progress: ${pct}% (video 50% + testlar 50%)</div>
     `;
   } else {
     actionHtml = `<button id="enrollBtn" class="btn btn-primary btn-block">Kursga yozilish (${price})</button>`;
@@ -66,9 +84,6 @@ function renderHeader(course) {
 
   const enrollBtn = document.getElementById('enrollBtn');
   if (enrollBtn) enrollBtn.addEventListener('click', () => enroll(course));
-
-  const progressBtn = document.getElementById('progressBtn');
-  if (progressBtn) progressBtn.addEventListener('click', () => bumpProgress(course));
 }
 
 async function enroll(course) {
@@ -76,25 +91,11 @@ async function enroll(course) {
     await api.post('/api/enrollments/', { course: course.id }, { auth: true });
     showAlert('success', "Kursga muvaffaqiyatli yozildingiz!");
     currentEnrollment = await findMyEnrollment();
+    await loadWatchedLessons();
     renderHeader(course);
+    renderSections(course.sections);
   } catch (err) {
     showAlert('error', err instanceof ApiError ? err.message : "Yozilishda xatolik yuz berdi.");
-  }
-}
-
-async function bumpProgress(course) {
-  if (!currentEnrollment) return;
-  const next = Math.min(100, currentEnrollment.progress_percent + 25);
-  try {
-    currentEnrollment = await api.patch(
-      `/api/enrollments/${currentEnrollment.id}/progress/`,
-      { progress_percent: next },
-      { auth: true }
-    );
-    showAlert('success', next === 100 ? "Tabriklaymiz! Kurs tugatildi, sertifikat tayyorlanmoqda." : "Progress yangilandi.");
-    renderHeader(course);
-  } catch {
-    showAlert('error', 'Progressni yangilab bo\'lmadi.');
   }
 }
 
@@ -109,13 +110,144 @@ function renderSections(sections) {
   container.innerHTML = sections.map((section) => `
     <div class="section-block">
       <div class="section-title">${escapeHtml(section.title)}</div>
-      ${(section.lessons || []).map((lesson) => `
-        <div class="lesson-item">
-          ${canView ? '▶️' : '🔒'} ${escapeHtml(lesson.title)}
+      ${(section.lessons || []).map((lesson) => {
+        const watched = watchedLessonIds.has(lesson.id);
+        const icon = !canView ? '🔒' : watched ? '✅' : '▶️';
+        const classes = ['lesson-item', canView ? 'clickable' : '', watched ? 'watched' : '', lesson.id === activeLessonId ? 'active' : ''].join(' ');
+        return `<div class="${classes}" data-lesson-id="${lesson.id}">${icon} ${escapeHtml(lesson.title)}</div>`;
+      }).join('') || '<div class="lesson-item muted">Darslar hali qo\'shilmagan.</div>'}
+      ${section.quiz_id ? `
+        <div class="quiz-row">
+          <span>📝 Bo'lim testi</span>
+          <button class="btn btn-outline btn-sm quiz-open-btn" data-quiz-id="${section.quiz_id}" ${canView ? '' : 'disabled'}>Testni boshlash</button>
         </div>
-      `).join('') || '<div class="lesson-item muted">Darslar hali qo\'shilmagan.</div>'}
+      ` : ''}
     </div>
   `).join('');
+
+  if (canView) {
+    container.querySelectorAll('.lesson-item.clickable').forEach((el) => {
+      el.addEventListener('click', () => openLesson(Number(el.dataset.lessonId)));
+    });
+  }
+  container.querySelectorAll('.quiz-open-btn').forEach((btn) => {
+    btn.addEventListener('click', () => openQuiz(Number(btn.dataset.quizId)));
+  });
+}
+
+function findLesson(lessonId) {
+  for (const section of currentCourse.sections || []) {
+    const lesson = (section.lessons || []).find((l) => l.id === lessonId);
+    if (lesson) return lesson;
+  }
+  return null;
+}
+
+async function openLesson(lessonId) {
+  const lesson = findLesson(lessonId);
+  if (!lesson) return;
+  activeLessonId = lessonId;
+  renderSections(currentCourse.sections);
+
+  const videoId = extractYouTubeId(lesson.video_url);
+
+  playerPanel.hidden = false;
+  playerPanel.innerHTML = `
+    <div class="player-panel">
+      <h3>${escapeHtml(lesson.title)}</h3>
+      ${videoId
+        ? `<div class="video-wrapper"><div id="ytPlayerEl"></div></div>`
+        : '<p class="muted">Bu darsga video hali biriktirilmagan.</p>'}
+      ${lesson.content ? `<p style="margin-top:12px;">${escapeHtml(lesson.content)}</p>` : ''}
+      ${watchedLessonIds.has(lesson.id) ? '<p class="badge" style="margin-top:8px;">✅ Ko\'rilgan</p>' : '<p class="muted" style="margin-top:8px;">Video oxirigacha ko\'rilganda avtomatik belgilanadi.</p>'}
+    </div>
+  `;
+  playerPanel.scrollIntoView({ behavior: 'smooth', block: 'start' });
+
+  if (videoId) {
+    ytPlayer = await createPlayer('ytPlayerEl', videoId, () => onLessonWatched(lessonId));
+  }
+}
+
+async function onLessonWatched(lessonId) {
+  if (watchedLessonIds.has(lessonId)) return;
+  try {
+    const data = await api.post('/api/enrollments/watch-lesson/', { lesson: lessonId }, { auth: true });
+    watchedLessonIds.add(lessonId);
+    showAlert('success', "Video ko'rildi deb belgilandi, progress yangilandi!");
+    if (currentEnrollment) currentEnrollment.progress_percent = data.progress_percent;
+    renderHeader(currentCourse);
+    renderSections(currentCourse.sections);
+  } catch {
+    showAlert('error', "Progressni yangilab bo'lmadi.");
+  }
+}
+
+async function openQuiz(quizId) {
+  playerPanel.hidden = false;
+  playerPanel.innerHTML = '<div class="player-panel"><p class="muted">Test yuklanmoqda...</p></div>';
+  playerPanel.scrollIntoView({ behavior: 'smooth', block: 'start' });
+
+  try {
+    const quiz = await api.get(`/api/quizzes/${quizId}/`, { auth: true });
+    renderQuiz(quiz);
+  } catch {
+    playerPanel.innerHTML = '<div class="player-panel"><p class="muted">Testni yuklab bo\'lmadi.</p></div>';
+  }
+}
+
+function renderQuiz(quiz) {
+  playerPanel.innerHTML = `
+    <div class="player-panel">
+      <h3>📝 ${escapeHtml(quiz.title)}</h3>
+      <form id="quizForm">
+        ${quiz.questions.map((q) => `
+          <div class="quiz-question">
+            <p>${escapeHtml(q.text)}</p>
+            ${q.answers.map((a) => `
+              <label class="quiz-option">
+                <input type="${q.question_type === 'multiple' ? 'checkbox' : 'radio'}" name="q_${q.id}" value="${a.id}" />
+                ${escapeHtml(a.text)}
+              </label>
+            `).join('')}
+          </div>
+        `).join('')}
+        <button type="submit" class="btn btn-primary" style="margin-top:12px;">Javoblarni yuborish</button>
+      </form>
+    </div>
+  `;
+
+  document.getElementById('quizForm').addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const answers = {};
+    quiz.questions.forEach((q) => {
+      const checked = [...document.querySelectorAll(`input[name="q_${q.id}"]:checked`)].map((el) => Number(el.value));
+      answers[q.id] = checked;
+    });
+
+    try {
+      const result = await api.post(`/api/quizzes/${quiz.id}/submit/`, { answers }, { auth: true });
+      renderQuizResult(result);
+      if (currentEnrollment && result.progress_percent !== null && result.progress_percent !== undefined) {
+        currentEnrollment.progress_percent = result.progress_percent;
+        renderHeader(currentCourse);
+      }
+    } catch (err) {
+      showAlert('error', err instanceof ApiError ? err.message : 'Testni yuborishda xatolik.');
+    }
+  });
+}
+
+function renderQuizResult(result) {
+  playerPanel.innerHTML = `
+    <div class="player-panel quiz-result-box">
+      <div class="score">${result.score}%</div>
+      <p>${result.correct} / ${result.total} to'g'ri javob</p>
+      <p class="badge" style="background:${result.passed ? '#ecfdf5' : '#fef2f2'};color:${result.passed ? 'var(--color-success)' : 'var(--color-danger)'};">
+        ${result.passed ? "✅ O'tdingiz!" : "❌ O'ta olmadingiz (kamida 60% kerak)"}
+      </p>
+    </div>
+  `;
 }
 
 function reviewItemHtml(review) {
@@ -188,9 +320,11 @@ function renderReviewForm() {
 async function init() {
   currentUser = await renderNavbar('');
   currentEnrollment = await findMyEnrollment();
+  await loadWatchedLessons();
 
   try {
     const course = await api.get(`/api/courses/${courseId}/`, { auth: isAuthenticated() });
+    currentCourse = course;
     document.title = `${course.title} — EduNest`;
     renderHeader(course);
     renderSections(course.sections);

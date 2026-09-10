@@ -2,6 +2,9 @@ from rest_framework import permissions, status, viewsets
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
+from apps.enrollments.models import Enrollment
+from apps.enrollments.progress import recalculate_progress
+
 from .models import Answer, Question, Quiz, QuizResult
 from .serializers import QuizSerializer, QuizSubmitSerializer
 
@@ -37,7 +40,19 @@ class QuizSubmitView(APIView):
         result = QuizResult.objects.create(
             student=request.user, quiz=quiz, score=score, passed=score >= 60
         )
+
+        course = quiz.section.course
+        progress_percent = None
+        if Enrollment.objects.filter(student=request.user, course=course).exists():
+            progress_percent = recalculate_progress(request.user, course)
+
         return Response(
-            {'score': result.score, 'passed': result.passed, 'correct': correct, 'total': total},
+            {
+                'score': result.score,
+                'passed': result.passed,
+                'correct': correct,
+                'total': total,
+                'progress_percent': progress_percent,
+            },
             status=status.HTTP_201_CREATED,
         )
