@@ -90,10 +90,7 @@ services:
       - key: BOT_TOKEN
         sync: false
       - key: API_BASE_URL
-        fromService:
-          name: edunest-backend
-          type: web
-          property: hostport
+        sync: false  # backend deploy bo'lgach, uning https://...onrender.com manzilini shu yerga qo'yasiz
       - key: BOT_API_SECRET
         sync: false
 
