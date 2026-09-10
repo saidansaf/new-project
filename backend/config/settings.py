@@ -97,6 +97,13 @@ STATIC_URL = 'static/'
 STATIC_ROOT = BASE_DIR / 'staticfiles'
 STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
 
+# Frontend (HTML/CSS/JS) ni backend bilan BITTA domenda, saytning ildizida (/) berish uchun.
+# Shu bilan foydalanuvchi uchun ikkita alohida manzil o'rniga bitta sayt bo'ladi.
+FRONTEND_DIR = BASE_DIR.parent / 'frontend'
+if FRONTEND_DIR.exists():
+    WHITENOISE_ROOT = FRONTEND_DIR
+    WHITENOISE_INDEX_FILE = True
+
 MEDIA_URL = 'media/'
 MEDIA_ROOT = BASE_DIR / 'media'
 

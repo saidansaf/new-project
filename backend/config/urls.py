@@ -1,21 +1,14 @@
 from django.conf import settings
 from django.conf.urls.static import static
 from django.contrib import admin
-from django.http import JsonResponse
 from django.urls import include, path
 from drf_spectacular.views import SpectacularAPIView, SpectacularSwaggerView
 
-
-def api_root(request):
-    return JsonResponse({
-        'message': "Bu EduNest backend (REST API). Sayt (frontend) alohida joyda joylashtiriladi.",
-        'api_docs': request.build_absolute_uri('/api/docs/'),
-        'admin': request.build_absolute_uri('/admin/'),
-    })
-
+# Eslatma: '/' va boshqa frontend fayllari (index.html, css/, js/...) WhiteNoise
+# middleware orqali beriladi (config/settings.py: WHITENOISE_ROOT) — shuning uchun
+# bu yerda alohida bosh sahifa view'i kerak emas.
 
 urlpatterns = [
-    path('', api_root, name='api-root'),
     path('admin/', admin.site.urls),
 
     path('api/auth/', include('apps.users.urls')),
@@ -33,5 +26,6 @@ urlpatterns = [
     path('api/docs/', SpectacularSwaggerView.as_view(url_name='schema'), name='docs'),
 ]
 
-if settings.DEBUG:
-    urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
+# Media (masalan sertifikat PDF'lari) — S3 kabi tashqi storage ulanmagani uchun
+# hozircha DEBUG holatidan qat'i nazar Django orqali beriladi.
+urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

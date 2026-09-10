@@ -15,6 +15,7 @@ RUN pip install --no-cache-dir -r backend-requirements.txt -r bot-requirements.t
 
 COPY backend ./backend
 COPY bot ./bot
+COPY frontend ./frontend
 COPY entrypoint.sh ./entrypoint.sh
 RUN chmod +x entrypoint.sh
 
