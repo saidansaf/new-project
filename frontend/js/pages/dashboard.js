@@ -1,12 +1,15 @@
 import { api } from '../api.js';
 import { requireAuth } from '../auth.js';
-import { renderNavbar, escapeHtml } from '../navbar.js';
+import { t } from '../i18n.js';
+import { escapeHtml, renderNavbar } from '../navbar.js';
 
 if (!requireAuth()) {
   throw new Error('not authenticated');
 }
 
-const ROLE_LABEL = { student: 'Talaba', instructor: "O'qituvchi", admin: 'Admin' };
+function roleLabel(role) {
+  return { student: t('role_student'), instructor: t('role_instructor'), admin: 'Admin' }[role] || role;
+}
 
 function showAlert(type, message) {
   const box = document.getElementById('alertBox');
@@ -16,13 +19,13 @@ function showAlert(type, message) {
 
 function renderProfile(user) {
   document.getElementById('profilePanel').innerHTML = `
-    <h3>👤 Profil</h3>
-    <div class="list-item"><span>Foydalanuvchi</span><strong>${escapeHtml(user.username)}</strong></div>
-    <div class="list-item"><span>Email</span><strong>${escapeHtml(user.email)}</strong></div>
-    <div class="list-item"><span>Rol</span><span class="badge">${ROLE_LABEL[user.role] || user.role}</span></div>
-    ${user.phone ? `<div class="list-item"><span>Telefon</span><strong>${escapeHtml(user.phone)}</strong></div>` : ''}
-    <div class="list-item"><span>🔥 Kunlik streak</span><strong>${user.current_streak} kun</strong></div>
-    <div class="list-item"><span>🏆 Eng uzun streak</span><strong>${user.longest_streak} kun</strong></div>
+    <h3>${t('profile_title')}</h3>
+    <div class="list-item"><span>${t('field_user')}</span><strong>${escapeHtml(user.username)}</strong></div>
+    <div class="list-item"><span>${t('field_email')}</span><strong>${escapeHtml(user.email)}</strong></div>
+    <div class="list-item"><span>${t('field_role')}</span><span class="badge">${roleLabel(user.role)}</span></div>
+    ${user.phone ? `<div class="list-item"><span>${t('field_phone')}</span><strong>${escapeHtml(user.phone)}</strong></div>` : ''}
+    <div class="list-item"><span>${t('streak_daily')}</span><strong>${user.current_streak} ${t('days_suffix')}</strong></div>
+    <div class="list-item"><span>${t('streak_longest')}</span><strong>${user.longest_streak} ${t('days_suffix')}</strong></div>
   `;
 }
 
@@ -31,7 +34,7 @@ async function loadMyCourses() {
   try {
     const enrollments = await api.get('/api/enrollments/my/', { auth: true });
     if (!enrollments.length) {
-      el.innerHTML = '<div class="empty-state">Hali hech qanday kursga yozilmagansiz. <a href="index.html">Kurslarni ko\'rish →</a></div>';
+      el.innerHTML = `<div class="empty-state">${t('no_enrollments')} <a href="index.html">${t('view_courses')}</a></div>`;
       return;
     }
     el.innerHTML = enrollments.map((e) => `
@@ -44,7 +47,7 @@ async function loadMyCourses() {
       </div>
     `).join('');
   } catch {
-    el.innerHTML = '<p class="muted">Kurslarni yuklab bo\'lmadi.</p>';
+    el.innerHTML = `<p class="muted">${t('courses_load_error')}</p>`;
   }
 }
 
@@ -60,9 +63,9 @@ async function loadNotifications() {
             <span class="muted">${new Date(n.created_at).toLocaleDateString('uz-UZ')}</span>
           </div>
         `).join('')
-      : '<p class="muted">Hozircha bildirishnoma yo\'q.</p>';
+      : `<p class="muted">${t('no_notifications_yet')}</p>`;
   } catch {
-    el.innerHTML = '<p class="muted">Bildirishnomalarni yuklab bo\'lmadi.</p>';
+    el.innerHTML = `<p class="muted">${t('notif_load_error')}</p>`;
   }
 }
 
@@ -75,12 +78,12 @@ async function loadCertificates() {
       ? items.map((c) => `
           <div class="list-item">
             <span>🎓 ${escapeHtml(c.course_title)}</span>
-            ${c.file ? `<a href="${c.file}" target="_blank" class="btn btn-outline btn-sm">Yuklab olish</a>` : '<span class="muted">Tayyorlanmoqda...</span>'}
+            ${c.file ? `<a href="${c.file}" target="_blank" class="btn btn-outline btn-sm">${t('download')}</a>` : `<span class="muted">${t('preparing')}</span>`}
           </div>
         `).join('')
-      : '<p class="muted">Hali sertifikatlaringiz yo\'q. Kursni 100% tugating!</p>';
+      : `<p class="muted">${t('no_certificates')}</p>`;
   } catch {
-    el.innerHTML = '<p class="muted">Sertifikatlarni yuklab bo\'lmadi.</p>';
+    el.innerHTML = `<p class="muted">${t('cert_load_error')}</p>`;
   }
 }
 
@@ -90,14 +93,14 @@ function bindTelegramLink() {
       const data = await api.post('/api/telegram/link-token/', {}, { auth: true });
       document.getElementById('telegramLinkResult').innerHTML = `
         <div class="alert alert-info" style="margin-top:12px;">
-          Telegramda ochish uchun tugmani bosing (havola 1 marta ishlaydi):<br>
+          ${t('telegram_open_hint')}<br>
           <a href="${data.deep_link}" target="_blank" class="btn btn-primary btn-block" style="margin-top:8px;">
-            📲 Telegram botni ochish
+            ${t('telegram_open_btn')}
           </a>
         </div>
       `;
     } catch {
-      showAlert('error', "Havola yaratishda xatolik yuz berdi.");
+      showAlert('error', t('telegram_link_error'));
     }
   });
 }

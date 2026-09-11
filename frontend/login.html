@@ -10,21 +10,21 @@
   <div id="navbar"></div>
 
   <div class="auth-wrapper">
-    <h2>Xush kelibsiz 👋</h2>
+    <h2 data-i18n="welcome_title">Xush kelibsiz 👋</h2>
     <div id="alertBox"></div>
     <form id="loginForm">
       <div class="form-group">
-        <label for="username">Foydalanuvchi nomi</label>
+        <label for="username" data-i18n="username_label">Foydalanuvchi nomi</label>
         <input type="text" id="username" required autocomplete="username" />
       </div>
       <div class="form-group">
-        <label for="password">Parol</label>
+        <label for="password" data-i18n="password_label">Parol</label>
         <input type="password" id="password" required autocomplete="current-password" />
       </div>
-      <button type="submit" class="btn btn-primary btn-block" id="submitBtn">Kirish</button>
+      <button type="submit" class="btn btn-primary btn-block" id="submitBtn" data-i18n="login_btn">Kirish</button>
     </form>
     <div class="form-footer">
-      Akkountingiz yo'qmi? <a href="register.html">Ro'yxatdan o'ting</a>
+      <span data-i18n="no_account">Akkountingiz yo'qmi?</span> <a href="register.html" data-i18n="register_link">Ro'yxatdan o'ting</a>
     </div>
   </div>
 

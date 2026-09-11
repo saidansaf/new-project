@@ -1,6 +1,6 @@
 import { api } from './api.js';
 import { isAuthenticated, clearTokens } from './auth.js';
-import { t, getLang, setLang, LANGUAGES } from './i18n.js';
+import { applyI18n, getLang, LANGUAGES, setLang, t } from './i18n.js';
 
 export async function renderNavbar(activePage = '') {
   const container = document.getElementById('navbar');
@@ -66,6 +66,7 @@ export async function renderNavbar(activePage = '') {
   }
 
   renderSidebar(activePage, user);
+  applyI18n();
 
   return user;
 }

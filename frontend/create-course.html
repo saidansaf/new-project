@@ -13,39 +13,39 @@
     <div id="sidebar"></div>
     <div class="app-main">
       <div class="auth-wrapper" style="max-width:560px;">
-        <h2>Yangi kurs yaratish 📘</h2>
-        <p class="muted">Kurs yaratilgach, admin tasdiqlagandan so'ng u ommaviy ro'yxatda ko'rinadi.</p>
+        <h2 data-i18n="create_course_title">Yangi kurs yaratish 📘</h2>
+        <p class="muted" data-i18n="create_course_desc">Kurs yaratilgach, admin tasdiqlagandan so'ng u ommaviy ro'yxatda ko'rinadi.</p>
         <div id="alertBox"></div>
         <form id="courseForm">
           <div class="form-group">
-            <label for="title">Kurs nomi</label>
+            <label for="title" data-i18n="course_name">Kurs nomi</label>
             <input type="text" id="title" required />
           </div>
           <div class="form-group">
-            <label for="description">Tavsif</label>
+            <label for="description" data-i18n="description_label">Tavsif</label>
             <textarea id="description" required></textarea>
           </div>
           <div class="form-row">
             <div class="form-group">
-              <label for="price">Narxi (so'm, 0 = bepul)</label>
+              <label for="price" data-i18n="price_label">Narxi (so'm, 0 = bepul)</label>
               <input type="number" id="price" min="0" step="1000" value="0" required />
             </div>
             <div class="form-group">
-              <label for="level">Daraja</label>
+              <label for="level" data-i18n="level_label">Daraja</label>
               <select id="level">
-                <option value="beginner">Boshlang'ich</option>
-                <option value="intermediate">O'rta</option>
-                <option value="advanced">Yuqori</option>
+                <option value="beginner" data-i18n="level_beginner">Boshlang'ich</option>
+                <option value="intermediate" data-i18n="level_intermediate">O'rta</option>
+                <option value="advanced" data-i18n="level_advanced">Yuqori</option>
               </select>
             </div>
           </div>
           <div class="form-group">
-            <label for="category">Kategoriya</label>
+            <label for="category" data-i18n="category_label">Kategoriya</label>
             <select id="category">
-              <option value="">Tanlanmagan</option>
+              <option value="" data-i18n="not_selected">Tanlanmagan</option>
             </select>
           </div>
-          <button type="submit" class="btn btn-primary btn-block" id="submitBtn">Kurs yaratish</button>
+          <button type="submit" class="btn btn-primary btn-block" id="submitBtn" data-i18n="create_course">Kurs yaratish</button>
         </form>
       </div>
     </div>

@@ -1,5 +1,6 @@
 import { api } from '../api.js';
 import { renderNavbar, escapeHtml } from '../navbar.js';
+import { t } from '../i18n.js';
 
 let currentPage = 1;
 let currentParams = {};
@@ -23,10 +24,10 @@ async function loadCategories() {
 
 function courseCardHtml(course) {
   const price = Number(course.price) === 0
-    ? '<span class="price free">Bepul</span>'
+    ? `<span class="price free">${t('free')}</span>`
     : `<span class="price">${course.price} so'm</span>`;
   const rating = course.average_rating ? `<span class="rating">⭐ ${course.average_rating}</span>` : '';
-  const levelLabel = { beginner: "Boshlang'ich", intermediate: "O'rta", advanced: 'Yuqori' }[course.level] || course.level;
+  const levelLabel = { beginner: t('level_beginner'), intermediate: t('level_intermediate'), advanced: t('level_advanced') }[course.level] || course.level;
 
   return `
     <a href="course.html?id=${course.id}" class="card">
@@ -43,7 +44,7 @@ function courseCardHtml(course) {
         </div>
         <div class="card-footer">
           ${price}
-          <span class="btn btn-outline btn-sm">Batafsil</span>
+          <span class="btn btn-outline btn-sm">${t('details')}</span>
         </div>
       </div>
     </a>
@@ -53,14 +54,14 @@ function courseCardHtml(course) {
 async function loadCourses(page = 1) {
   currentPage = page;
   const grid = document.getElementById('coursesGrid');
-  grid.innerHTML = '<p class="muted">Yuklanmoqda...</p>';
+  grid.innerHTML = `<p class="muted">${t('loading')}</p>`;
 
   try {
     const data = await api.get('/api/courses/', { params: { ...currentParams, page } });
     const courses = data.results ?? data;
 
     if (!courses.length) {
-      grid.innerHTML = '<div class="empty-state">Hech qanday kurs topilmadi.</div>';
+      grid.innerHTML = `<div class="empty-state">${t('no_courses')}</div>`;
       renderPagination(null);
       return;
     }
@@ -80,14 +81,14 @@ function renderPagination(data) {
   if (data.previous) {
     const btn = document.createElement('button');
     btn.className = 'btn btn-outline btn-sm';
-    btn.textContent = '⬅️ Oldingi';
+    btn.textContent = t('prev');
     btn.onclick = () => loadCourses(currentPage - 1);
     el.appendChild(btn);
   }
   if (data.next) {
     const btn = document.createElement('button');
     btn.className = 'btn btn-outline btn-sm';
-    btn.textContent = 'Keyingi ➡️';
+    btn.textContent = t('next');
     btn.onclick = () => loadCourses(currentPage + 1);
     el.appendChild(btn);
   }

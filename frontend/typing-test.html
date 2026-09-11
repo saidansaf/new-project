@@ -69,21 +69,21 @@
             <div class="typing-option" data-duration="120">120s</div>
           </div>
           <div class="typing-stats">
-            <div><span>Vaqt</span><span id="timeLeft" style="font-size:20px;color:var(--color-text);">30</span></div>
+            <div><span data-i18n="typing_time">Vaqt</span><span id="timeLeft" style="font-size:20px;color:var(--color-text);">30</span></div>
             <div><span>WPM</span><span id="liveWpm" style="font-size:20px;color:var(--color-text);">0</span></div>
           </div>
-          <button id="themeToggle" class="btn btn-outline btn-sm">🌙 Qora rejim</button>
+          <button id="themeToggle" class="btn btn-outline btn-sm" data-i18n="typing_theme_dark">🌙 Qora rejim</button>
         </div>
 
         <div id="typingArea">
           <div id="typingBoard" class="typing-board"></div>
           <input id="typingHiddenInput" type="text" autocomplete="off" autocapitalize="off" spellcheck="false" />
-          <div class="form-footer">Boshlash uchun matnga bosing va yozishni boshlang. <button id="restartBtn" class="btn btn-ghost btn-sm">🔄 Qayta boshlash</button></div>
+          <div class="form-footer"><span data-i18n="typing_start_hint">Boshlash uchun matnga bosing va yozishni boshlang.</span> <button id="restartBtn" class="btn btn-ghost btn-sm" data-i18n="typing_restart">🔄 Qayta boshlash</button></div>
         </div>
 
         <div id="resultArea" hidden></div>
 
-        <h3 style="margin-top:36px;">🏆 TOP-10 (<span id="lbDurationLabel">30</span>s)</h3>
+        <h3 style="margin-top:36px;"><span data-i18n="typing_leaderboard">🏆 TOP-10</span> (<span id="lbDurationLabel">30</span>s)</h3>
         <div id="leaderboard" class="panel"></div>
       </div>
     </div>

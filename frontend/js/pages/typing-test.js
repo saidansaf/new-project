@@ -1,8 +1,9 @@
 import { api, ApiError } from '../api.js';
 import { isAuthenticated } from '../auth.js';
+import { getLang, t } from '../i18n.js';
 import { renderNavbar } from '../navbar.js';
 
-const WORDS = [
+const WORDS_UZ = [
   'kitob', 'maktab', 'dunyo', 'yulduz', 'osmon', 'quyosh', 'daryo', 'togʻ', 'baliq', 'qush',
   'gul', 'daraxt', 'bahor', 'yozgi', 'kuzgi', 'qishki', 'shahar', 'qishloq', 'yoʻl', 'koʻcha',
   'uy', 'oila', 'doʻst', 'ustoz', 'talaba', 'ilm', 'fan', 'texnika', 'dastur', 'kompyuter',
@@ -12,6 +13,35 @@ const WORDS = [
   'kun', 'tun', 'hafta', 'oy', 'yil', 'asr', 'tarix', 'geografiya', 'matematika', 'fizika',
   'kimyo', 'biologiya', 'adabiyot', 'til', 'soʻz', 'gap', 'matn', 'sahifa', 'daftar', 'qalam',
 ];
+
+const WORDS_EN = [
+  'book', 'school', 'world', 'star', 'sky', 'sun', 'river', 'mountain', 'fish', 'bird',
+  'flower', 'tree', 'spring', 'summer', 'autumn', 'winter', 'city', 'village', 'road', 'street',
+  'house', 'family', 'friend', 'teacher', 'student', 'science', 'skill', 'technology', 'program', 'computer',
+  'phone', 'internet', 'travel', 'music', 'picture', 'sport', 'health', 'food', 'water', 'bread',
+  'apple', 'grape', 'carrot', 'potato', 'car', 'train', 'plane', 'sea', 'lake', 'light',
+  'table', 'chair', 'window', 'door', 'wall', 'roof', 'garden', 'yard', 'work', 'time',
+  'day', 'night', 'week', 'month', 'year', 'century', 'history', 'geography', 'math', 'physics',
+  'chemistry', 'biology', 'literature', 'language', 'word', 'sentence', 'text', 'page', 'notebook', 'pencil',
+];
+
+const WORDS_RU = [
+  'книга', 'школа', 'мир', 'звезда', 'небо', 'солнце', 'река', 'гора', 'рыба', 'птица',
+  'цветок', 'дерево', 'весна', 'лето', 'осень', 'зима', 'город', 'село', 'дорога', 'улица',
+  'дом', 'семья', 'друг', 'учитель', 'студент', 'наука', 'навык', 'техника', 'программа', 'компьютер',
+  'телефон', 'интернет', 'путешествие', 'музыка', 'картина', 'спорт', 'здоровье', 'еда', 'вода', 'хлеб',
+  'яблоко', 'виноград', 'морковь', 'картофель', 'машина', 'поезд', 'самолёт', 'море', 'озеро', 'свет',
+  'стол', 'стул', 'окно', 'дверь', 'стена', 'крыша', 'сад', 'двор', 'работа', 'время',
+  'день', 'ночь', 'неделя', 'месяц', 'год', 'век', 'история', 'география', 'математика', 'физика',
+  'химия', 'биология', 'литература', 'язык', 'слово', 'предложение', 'текст', 'страница', 'тетрадь', 'карандаш',
+];
+
+function currentWordBank() {
+  const lang = getLang();
+  if (lang === 'en') return WORDS_EN;
+  if (lang === 'ru') return WORDS_RU;
+  return WORDS_UZ;
+}
 
 const DURATIONS = [15, 30, 60, 120];
 let selectedDuration = 30;
@@ -28,9 +58,10 @@ const resultArea = document.getElementById('resultArea');
 const typingArea = document.getElementById('typingArea');
 
 function randomWords(count) {
+  const bank = currentWordBank();
   const arr = [];
   for (let i = 0; i < count; i++) {
-    arr.push(WORDS[Math.floor(Math.random() * WORDS.length)]);
+    arr.push(bank[Math.floor(Math.random() * bank.length)]);
   }
   return arr.join(' ');
 }
@@ -110,9 +141,9 @@ async function finishTest() {
   resultArea.innerHTML = `
     <div class="typing-result">
       <div class="big">${wpm} WPM</div>
-      <p>Aniqlik: <strong>${accuracy}%</strong> &nbsp;•&nbsp; To'g'ri belgilar: <strong>${correct}</strong></p>
-      <button id="tryAgainBtn" class="btn btn-primary" style="margin-top:16px;">🔄 Qayta urinish</button>
-      ${!isAuthenticated() ? '<p class="muted" style="margin-top:10px;"><a href="login.html">Kirsangiz</a> natijangiz reytingga saqlanadi.</p>' : ''}
+      <p>${t('typing_accuracy')}: <strong>${accuracy}%</strong> &nbsp;•&nbsp; ${t('typing_correct_chars')}: <strong>${correct}</strong></p>
+      <button id="tryAgainBtn" class="btn btn-primary" style="margin-top:16px;">${t('typing_try_again')}</button>
+      ${!isAuthenticated() ? `<p class="muted" style="margin-top:10px;"><a href="login.html">${t('login')}</a> — ${t('typing_login_to_save')}</p>` : ''}
     </div>
   `;
   document.getElementById('tryAgainBtn').addEventListener('click', resetTest);
@@ -140,9 +171,9 @@ async function loadLeaderboard() {
             <strong>${r.wpm} WPM</strong>
           </div>
         `).join('')
-      : '<p class="muted">Hali natijalar yo\'q. Birinchi bo\'ling!</p>';
+      : `<p class="muted">${t('typing_no_results')}</p>`;
   } catch {
-    el.innerHTML = '<p class="muted">Reytingni yuklab bo\'lmadi.</p>';
+    el.innerHTML = `<p class="muted">${t('typing_leaderboard_error')}</p>`;
   }
 }
 
@@ -177,12 +208,12 @@ function bindTheme() {
   const btn = document.getElementById('themeToggle');
   const isDark = localStorage.getItem('edunest_typing_theme') === 'dark';
   if (isDark) document.body.classList.add('typing-dark');
-  btn.textContent = isDark ? '☀️ Oq rejim' : '🌙 Qora rejim';
+  btn.textContent = isDark ? t('typing_theme_light') : t('typing_theme_dark');
 
   btn.addEventListener('click', () => {
     const nowDark = document.body.classList.toggle('typing-dark');
     localStorage.setItem('edunest_typing_theme', nowDark ? 'dark' : 'light');
-    btn.textContent = nowDark ? '☀️ Oq rejim' : '🌙 Qora rejim';
+    btn.textContent = nowDark ? t('typing_theme_light') : t('typing_theme_dark');
   });
 }
 

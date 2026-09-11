@@ -10,42 +10,42 @@
   <div id="navbar"></div>
 
   <div class="auth-wrapper">
-    <h2>Ro'yxatdan o'tish 🚀</h2>
+    <h2 data-i18n="register_title">Ro'yxatdan o'tish 🚀</h2>
     <div id="alertBox"></div>
     <form id="registerForm">
       <div class="form-row">
         <div class="form-group">
-          <label for="firstName">Ism</label>
+          <label for="firstName" data-i18n="first_name">Ism</label>
           <input type="text" id="firstName" />
         </div>
         <div class="form-group">
-          <label for="lastName">Familiya</label>
+          <label for="lastName" data-i18n="last_name">Familiya</label>
           <input type="text" id="lastName" />
         </div>
       </div>
       <div class="form-group">
-        <label for="username">Foydalanuvchi nomi</label>
+        <label for="username" data-i18n="username_label">Foydalanuvchi nomi</label>
         <input type="text" id="username" required autocomplete="username" />
       </div>
       <div class="form-group">
-        <label for="email">Email</label>
+        <label for="email" data-i18n="email_label">Email</label>
         <input type="email" id="email" required autocomplete="email" />
       </div>
       <div class="form-group">
-        <label for="password">Parol</label>
+        <label for="password" data-i18n="password_label">Parol</label>
         <input type="password" id="password" required autocomplete="new-password" />
       </div>
       <div class="form-group">
-        <label for="role">Rol</label>
+        <label for="role" data-i18n="role_label">Rol</label>
         <select id="role">
-          <option value="student">Talaba</option>
-          <option value="instructor">O'qituvchi</option>
+          <option value="student" data-i18n="role_student">Talaba</option>
+          <option value="instructor" data-i18n="role_instructor">O'qituvchi</option>
         </select>
       </div>
-      <button type="submit" class="btn btn-primary btn-block" id="submitBtn">Ro'yxatdan o'tish</button>
+      <button type="submit" class="btn btn-primary btn-block" id="submitBtn" data-i18n="register_btn">Ro'yxatdan o'tish</button>
     </form>
     <div class="form-footer">
-      Akkountingiz bormi? <a href="login.html">Kiring</a>
+      <span data-i18n="have_account">Akkountingiz bormi?</span> <a href="login.html" data-i18n="login_link">Kiring</a>
     </div>
   </div>
 
