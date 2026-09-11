@@ -67,7 +67,8 @@ function randomWords(count) {
 }
 
 function renderBoard() {
-  board.innerHTML = [...targetText].map((ch) => `<span class="char">${ch === ' ' ? '&nbsp;' : ch}</span>`).join('');
+  // Oddiy probel ishlatiladi (nbsp emas) — shunda brauzer so'zlar orasida qatorni buklay oladi.
+  board.innerHTML = [...targetText].map((ch) => `<span class="char">${ch === ' ' ? ' ' : ch}</span>`).join('');
   board.children[0]?.classList.add('current');
 }
 
@@ -204,24 +205,10 @@ function bindTyping() {
   });
 }
 
-function bindTheme() {
-  const btn = document.getElementById('themeToggle');
-  const isDark = localStorage.getItem('edunest_typing_theme') === 'dark';
-  if (isDark) document.body.classList.add('typing-dark');
-  btn.textContent = isDark ? t('typing_theme_light') : t('typing_theme_dark');
-
-  btn.addEventListener('click', () => {
-    const nowDark = document.body.classList.toggle('typing-dark');
-    localStorage.setItem('edunest_typing_theme', nowDark ? 'dark' : 'light');
-    btn.textContent = nowDark ? t('typing_theme_light') : t('typing_theme_dark');
-  });
-}
-
 async function init() {
   await renderNavbar('typing');
   bindDurationOptions();
   bindTyping();
-  bindTheme();
   resetTest();
   loadLeaderboard();
   hiddenInput.focus();

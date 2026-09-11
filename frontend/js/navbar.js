@@ -1,6 +1,7 @@
 import { api } from './api.js';
 import { isAuthenticated, clearTokens } from './auth.js';
 import { applyI18n, getLang, LANGUAGES, setLang, t } from './i18n.js';
+import { getTheme, toggleTheme } from './theme.js';
 
 export async function renderNavbar(activePage = '') {
   const container = document.getElementById('navbar');
@@ -49,6 +50,9 @@ export async function renderNavbar(activePage = '') {
                        ${LANGUAGES.map((l) => `<button type="button" class="lang-btn ${getLang() === l.code ? 'active' : ''}" data-lang="${l.code}">${l.code.toUpperCase()}</button>`).join('')}
                      </div>
                    </div>
+                   <button id="themeToggleBtn" type="button" class="avatar-menu-item">
+                     <span id="themeToggleLabel">${getTheme() === 'dark' ? '☀️ ' + t('light_mode') : '🌙 ' + t('dark_mode')}</span>
+                   </button>
                    <button id="logoutBtn" type="button" class="avatar-menu-item avatar-menu-danger">🚪 ${t('logout')}</button>
                  </div>
                </div>`
@@ -90,6 +94,12 @@ function bindAvatarDropdown() {
 
   dropdown.querySelectorAll('.lang-btn').forEach((langBtn) => {
     langBtn.addEventListener('click', () => setLang(langBtn.dataset.lang));
+  });
+
+  document.getElementById('themeToggleBtn')?.addEventListener('click', () => {
+    const nowTheme = toggleTheme();
+    const label = document.getElementById('themeToggleLabel');
+    if (label) label.textContent = nowTheme === 'dark' ? '☀️ ' + t('light_mode') : '🌙 ' + t('dark_mode');
   });
 
   const logoutBtn = document.getElementById('logoutBtn');
