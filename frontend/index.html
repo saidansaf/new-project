@@ -9,33 +9,38 @@
 <body>
   <div id="navbar"></div>
 
-  <div class="container">
-    <section class="hero">
-      <h1>Yangi ko'nikma o'rganing 🎓</h1>
-      <p>EduNest platformasida yuzlab kurslar orasidan o'zingizga mosini tanlang va bugundan boshlab o'rganishni boshlang.</p>
-    </section>
+  <div class="app-shell">
+    <div id="sidebar"></div>
+    <div class="app-main">
+      <div class="container">
+        <section class="hero">
+          <h1>Yangi ko'nikma o'rganing 🎓</h1>
+          <p>EduNest platformasida yuzlab kurslar orasidan o'zingizga mosini tanlang va bugundan boshlab o'rganishni boshlang.</p>
+        </section>
 
-    <div class="filters">
-      <input id="searchInput" type="text" placeholder="Kurs qidirish..." />
-      <select id="categoryFilter">
-        <option value="">Barcha kategoriyalar</option>
-      </select>
-      <select id="levelFilter">
-        <option value="">Barcha darajalar</option>
-        <option value="beginner">Boshlang'ich</option>
-        <option value="intermediate">O'rta</option>
-        <option value="advanced">Yuqori</option>
-      </select>
+        <div class="filters">
+          <input id="searchInput" type="text" placeholder="Kurs qidirish..." />
+          <select id="categoryFilter">
+            <option value="">Barcha kategoriyalar</option>
+          </select>
+          <select id="levelFilter">
+            <option value="">Barcha darajalar</option>
+            <option value="beginner">Boshlang'ich</option>
+            <option value="intermediate">O'rta</option>
+            <option value="advanced">Yuqori</option>
+          </select>
+        </div>
+
+        <div id="coursesGrid" class="grid">
+          <p class="muted">Yuklanmoqda...</p>
+        </div>
+
+        <div id="pagination" class="pagination"></div>
+      </div>
+
+      <div class="footer">© 2026 EduNest — Online Ta'lim Platformasi</div>
     </div>
-
-    <div id="coursesGrid" class="grid">
-      <p class="muted">Yuklanmoqda...</p>
-    </div>
-
-    <div id="pagination" class="pagination"></div>
   </div>
-
-  <div class="footer">© 2026 EduNest — Online Ta'lim Platformasi</div>
 
   <script type="module" src="js/pages/index.js"></script>
   <script type="module" src="js/ai-chat.js"></script>

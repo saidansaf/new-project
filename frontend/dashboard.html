@@ -9,42 +9,47 @@
 <body>
   <div id="navbar"></div>
 
-  <div class="container">
-    <div id="alertBox"></div>
-    <div class="dashboard-grid">
-      <div>
-        <div class="panel" id="profilePanel">
-          <p class="muted">Yuklanmoqda...</p>
-        </div>
+  <div class="app-shell">
+    <div id="sidebar"></div>
+    <div class="app-main">
+      <div class="container">
+        <div id="alertBox"></div>
+        <div class="dashboard-grid">
+          <div>
+            <div class="panel" id="profilePanel">
+              <p class="muted">Yuklanmoqda...</p>
+            </div>
 
-        <div class="panel" style="margin-top:16px;" id="telegramPanel">
-          <h3>🤖 Telegram bot</h3>
-          <p class="muted">Bildirishnomalarni Telegram orqali olish uchun akkauntingizni bog'lang.</p>
-          <button id="telegramLinkBtn" class="btn btn-primary btn-block">Telegram botga ulash</button>
-          <div id="telegramLinkResult"></div>
+            <div class="panel" style="margin-top:16px;" id="telegramPanel">
+              <h3>🤖 Telegram bot</h3>
+              <p class="muted">Bildirishnomalarni Telegram orqali olish uchun akkauntingizni bog'lang.</p>
+              <button id="telegramLinkBtn" class="btn btn-primary btn-block">Telegram botga ulash</button>
+              <div id="telegramLinkResult"></div>
+            </div>
+          </div>
+
+          <div>
+            <div class="panel">
+              <h3>📚 Mening kurslarim</h3>
+              <div id="myCourses"><p class="muted">Yuklanmoqda...</p></div>
+            </div>
+
+            <div class="panel" style="margin-top:16px;">
+              <h3>🔔 Bildirishnomalar</h3>
+              <div id="notificationsList"><p class="muted">Yuklanmoqda...</p></div>
+            </div>
+
+            <div class="panel" style="margin-top:16px;">
+              <h3>🎓 Sertifikatlarim</h3>
+              <div id="certificatesList"><p class="muted">Yuklanmoqda...</p></div>
+            </div>
+          </div>
         </div>
       </div>
 
-      <div>
-        <div class="panel">
-          <h3>📚 Mening kurslarim</h3>
-          <div id="myCourses"><p class="muted">Yuklanmoqda...</p></div>
-        </div>
-
-        <div class="panel" style="margin-top:16px;">
-          <h3>🔔 Bildirishnomalar</h3>
-          <div id="notificationsList"><p class="muted">Yuklanmoqda...</p></div>
-        </div>
-
-        <div class="panel" style="margin-top:16px;">
-          <h3>🎓 Sertifikatlarim</h3>
-          <div id="certificatesList"><p class="muted">Yuklanmoqda...</p></div>
-        </div>
-      </div>
+      <div class="footer">© 2026 EduNest — Online Ta'lim Platformasi</div>
     </div>
   </div>
-
-  <div class="footer">© 2026 EduNest — Online Ta'lim Platformasi</div>
 
   <script type="module" src="js/pages/dashboard.js"></script>
   <script type="module" src="js/ai-chat.js"></script>

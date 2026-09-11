@@ -1,12 +1,30 @@
 import { api, ApiError } from './api.js';
 import { escapeHtml } from './navbar.js';
+import { getAccessToken, isAuthenticated } from './auth.js';
 
-const HISTORY_KEY = 'edunest_ai_chat_history';
 const MAX_HISTORY = 20;
+
+function getCurrentUserId() {
+  const token = getAccessToken();
+  if (!token) return null;
+  try {
+    const payload = JSON.parse(atob(token.split('.')[1].replace(/-/g, '+').replace(/_/g, '/')));
+    return payload.user_id ?? null;
+  } catch {
+    return null;
+  }
+}
+
+// Har bir foydalanuvchi (yoki mehmon) uchun alohida kalit — logout/login qilganda
+// boshqa odamning eski xabarlari ko'rinib qolmasligi uchun.
+function historyKey() {
+  const userId = getCurrentUserId();
+  return userId ? `edunest_ai_chat_history_u${userId}` : 'edunest_ai_chat_history_guest';
+}
 
 function loadHistory() {
   try {
-    return JSON.parse(localStorage.getItem(HISTORY_KEY)) || [];
+    return JSON.parse(localStorage.getItem(historyKey())) || [];
   } catch {
     return [];
   }
@@ -14,7 +32,7 @@ function loadHistory() {
 
 function saveHistory(history) {
   try {
-    localStorage.setItem(HISTORY_KEY, JSON.stringify(history.slice(-MAX_HISTORY)));
+    localStorage.setItem(historyKey(), JSON.stringify(history.slice(-MAX_HISTORY)));
   } catch {
     // localStorage yo'q/to'la bo'lsa ham chat ishlayveradi, faqat tarix saqlanmaydi
   }
@@ -24,10 +42,10 @@ function buildWidget() {
   const root = document.createElement('div');
   root.id = 'aiChatRoot';
   root.innerHTML = `
-    <button id="aiChatToggle" class="ai-chat-fab" type="button" title="AI yordamchi">🤖</button>
+    <button id="aiChatToggle" class="ai-chat-fab" type="button" title="AI yordamchi">✨</button>
     <div id="aiChatWindow" class="ai-chat-window" hidden>
       <div class="ai-chat-header">
-        <span>🤖 EduNest AI yordamchi</span>
+        <span>✨ EduNest AI yordamchi</span>
         <button id="aiChatClose" class="ai-chat-close" type="button" aria-label="Yopish">✕</button>
       </div>
       <div id="aiChatMessages" class="ai-chat-messages"></div>
@@ -79,10 +97,20 @@ function init() {
     if (!text) return;
 
     messagesEl.insertAdjacentHTML('beforeend', messageHtml('user', text));
-    history.push({ role: 'user', content: text });
     input.value = '';
-    input.disabled = true;
     messagesEl.scrollTop = messagesEl.scrollHeight;
+
+    if (!isAuthenticated()) {
+      messagesEl.insertAdjacentHTML('beforeend', messageHtml(
+        'assistant',
+        "AI yordamchidan foydalanish uchun avval tizimga kiring yoki ro'yxatdan o'ting. 🔐"
+      ));
+      messagesEl.scrollTop = messagesEl.scrollHeight;
+      return;
+    }
+
+    history.push({ role: 'user', content: text });
+    input.disabled = true;
 
     const typingId = 'ai-typing-' + Date.now();
     messagesEl.insertAdjacentHTML('beforeend', `<div class="ai-msg ai-msg-bot" id="${typingId}">...</div>`);

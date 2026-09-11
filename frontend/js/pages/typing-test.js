@@ -5,7 +5,7 @@ import { renderNavbar } from '../navbar.js';
 const WORDS = [
   'kitob', 'maktab', 'dunyo', 'yulduz', 'osmon', 'quyosh', 'daryo', 'togʻ', 'baliq', 'qush',
   'gul', 'daraxt', 'bahor', 'yozgi', 'kuzgi', 'qishki', 'shahar', 'qishloq', 'yoʻl', 'koʻcha',
-  'uy', 'oila', 'do'st', 'ustoz', 'talaba', 'ilm', 'fan', 'texnika', 'dastur', 'kompyuter',
+  'uy', 'oila', 'doʻst', 'ustoz', 'talaba', 'ilm', 'fan', 'texnika', 'dastur', 'kompyuter',
   'telefon', 'internet', 'sayohat', 'muzika', 'rasm', 'sport', 'sogʻliq', 'ovqat', 'suv', 'non',
   'olma', 'uzum', 'sabzi', 'kartoshka', 'mashina', 'poyezd', 'samolyot', 'dengiz', 'koʻl', 'chiroq',
   'stol', 'stul', 'deraza', 'eshik', 'devor', 'tom', 'bog', 'hovli', 'ish', 'vaqt',
