@@ -88,8 +88,11 @@ function renderHeader(course) {
 
 async function enroll(course) {
   try {
+    if (Number(course.price) > 0) {
+      await api.post('/api/payments/checkout/', { course: course.id, payment_method: 'click' }, { auth: true });
+    }
     await api.post('/api/enrollments/', { course: course.id }, { auth: true });
-    showAlert('success', "Kursga muvaffaqiyatli yozildingiz!");
+    showAlert('success', Number(course.price) > 0 ? "To'lov qabul qilindi va kursga yozildingiz!" : "Kursga muvaffaqiyatli yozildingiz!");
     currentEnrollment = await findMyEnrollment();
     await loadWatchedLessons();
     renderHeader(course);

@@ -11,8 +11,10 @@ from .serializers import CheckoutSerializer, PaymentSerializer
 
 class CheckoutView(APIView):
     """
-    To'lov boshlash (stub). Haqiqiy loyihada bu yerda Click/Payme
-    invoice yaratish API'siga so'rov yuboriladi va to'lov havolasi qaytariladi.
+    To'lov (stub). Haqiqiy loyihada bu yerda Click/Payme invoice yaratish
+    API'siga so'rov yuboriladi, foydalanuvchi tashqi sahifada to'laydi va
+    webhook orqali status='paid' bo'ladi. Hozircha gateway ulanmagani uchun
+    to'lov darhol muvaffaqiyatli deb belgilanadi (demo/diplom uchun yetarli).
     """
 
     permission_classes = [permissions.IsAuthenticated]
@@ -27,16 +29,9 @@ class CheckoutView(APIView):
             course=course,
             amount=course.price,
             payment_method=serializer.validated_data['payment_method'],
-            status=Payment.Status.PENDING,
+            status=Payment.Status.PAID,  # TODO: haqiqiy gateway ulanganda PENDING qilib, webhook kutiladi
         )
-        return Response(
-            {
-                'payment': PaymentSerializer(payment).data,
-                # TODO: haqiqiy Click/Payme checkout URL bilan almashtiriladi
-                'checkout_url': f'https://example-payment.local/pay/{payment.transaction_id}',
-            },
-            status=status.HTTP_201_CREATED,
-        )
+        return Response(PaymentSerializer(payment).data, status=status.HTTP_201_CREATED)
 
 
 class PaymentHistoryView(generics.ListAPIView):
