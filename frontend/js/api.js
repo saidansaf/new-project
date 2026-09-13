@@ -86,10 +86,37 @@ async function request(path, { method = 'GET', body, auth = false, params } = {}
   return text ? JSON.parse(text) : null;
 }
 
+async function requestForm(path, formData, { auth = false } = {}) {
+  const headers = {};
+  if (auth) {
+    const token = getAccessToken();
+    if (token) headers['Authorization'] = `Bearer ${token}`;
+  }
+  let response = await fetch(`${API_BASE_URL}${path}`, { method: 'POST', headers, body: formData });
+
+  if (response.status === 401 && auth) {
+    const refreshed = await tryRefreshToken();
+    if (refreshed) {
+      headers['Authorization'] = `Bearer ${getAccessToken()}`;
+      response = await fetch(`${API_BASE_URL}${path}`, { method: 'POST', headers, body: formData });
+    }
+  }
+
+  if (!response.ok) {
+    let data = {};
+    try { data = await response.json(); } catch { /* body yo'q bo'lishi mumkin */ }
+    throw new ApiError(response.status, data);
+  }
+  const text = await response.text();
+  return text ? JSON.parse(text) : null;
+}
+
 export const api = {
   get: (path, opts) => request(path, { ...opts, method: 'GET' }),
   post: (path, body, opts) => request(path, { ...opts, method: 'POST', body }),
   patch: (path, body, opts) => request(path, { ...opts, method: 'PATCH', body }),
   put: (path, body, opts) => request(path, { ...opts, method: 'PUT', body }),
   delete: (path, opts) => request(path, { ...opts, method: 'DELETE' }),
+  // multipart/form-data (fayl yuklash) uchun — Content-Type'ni browser o'zi boundary bilan qo'yadi
+  postForm: (path, formData, opts) => requestForm(path, formData, opts),
 };

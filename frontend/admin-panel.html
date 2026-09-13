@@ -58,10 +58,22 @@
     <div class="admin-tabs">
       <div class="admin-tab active" data-tab="users">👥 Foydalanuvchilar</div>
       <div class="admin-tab" data-tab="courses">📚 Tasdiqlash kutilyapti</div>
+      <div class="admin-tab" data-tab="coupons">🏷️ Chegirma kodlari</div>
     </div>
 
     <div id="tabUsers"><p class="muted">Yuklanmoqda...</p></div>
     <div id="tabCourses" hidden><p class="muted">Yuklanmoqda...</p></div>
+    <div id="tabCoupons" hidden>
+      <form id="couponForm" class="panel" style="margin-bottom:16px;">
+        <div class="form-row">
+          <div class="form-group"><label>Kod</label><input type="text" id="couponCode" placeholder="YANGI20" required style="text-transform:uppercase;" /></div>
+          <div class="form-group" style="max-width:140px;"><label>Chegirma %</label><input type="number" id="couponPercent" min="1" max="100" required /></div>
+          <div class="form-group" style="max-width:140px;"><label>Maks. ishlatish</label><input type="number" id="couponMaxUses" min="1" placeholder="cheklovsiz" /></div>
+        </div>
+        <button type="submit" class="btn btn-primary">+ Kod qo'shish</button>
+      </form>
+      <div id="couponsTable"><p class="muted">Yuklanmoqda...</p></div>
+    </div>
   </div>
 
   <script type="module" src="js/pages/admin-panel.js"></script>

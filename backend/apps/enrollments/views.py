@@ -6,10 +6,11 @@ from rest_framework.views import APIView
 
 from apps.courses.models import Lesson
 
-from .models import Enrollment, LessonProgress, Wishlist
+from .models import Enrollment, LessonProgress, VideoPosition, Wishlist
 from .progress import recalculate_progress
 from .serializers import (
-    EnrollmentSerializer, ProgressUpdateSerializer, WatchLessonSerializer, WishlistSerializer,
+    EnrollmentSerializer, ProgressUpdateSerializer, SavePositionSerializer, WatchLessonSerializer,
+    WishlistSerializer,
 )
 
 
@@ -72,6 +73,35 @@ class WatchLessonView(APIView):
         LessonProgress.objects.get_or_create(student=request.user, lesson=lesson)
         percent = recalculate_progress(request.user, course)
         return Response({'progress_percent': percent})
+
+
+class SavePositionView(APIView):
+    """Video hali tugamagan bo'lsa ham, har necha soniyada joriy pozitsiyani saqlaydi."""
+
+    permission_classes = [permissions.IsAuthenticated]
+
+    def post(self, request):
+        serializer = SavePositionSerializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        VideoPosition.objects.update_or_create(
+            student=request.user,
+            lesson_id=serializer.validated_data['lesson'],
+            defaults={'position_seconds': serializer.validated_data['position']},
+        )
+        return Response(status=status.HTTP_204_NO_CONTENT)
+
+
+class VideoPositionsView(APIView):
+    """Berilgan kurs bo'yicha {lesson_id: position_seconds} lug'atini qaytaradi."""
+
+    permission_classes = [permissions.IsAuthenticated]
+
+    def get(self, request):
+        course_id = request.query_params.get('course')
+        qs = VideoPosition.objects.filter(student=request.user)
+        if course_id:
+            qs = qs.filter(lesson__section__course_id=course_id)
+        return Response({str(p.lesson_id): p.position_seconds for p in qs})
 
 
 class WishlistListCreateView(generics.ListCreateAPIView):

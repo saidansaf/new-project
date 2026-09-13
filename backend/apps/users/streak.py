@@ -17,4 +17,8 @@ def update_streak(user) -> int:
     user.longest_streak = max(user.longest_streak, user.current_streak)
     user.last_active_date = today
     user.save(update_fields=['current_streak', 'longest_streak', 'last_active_date'])
+
+    from apps.achievements.awards import check_streak_badges
+    check_streak_badges(user)
+
     return user.current_streak

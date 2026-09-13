@@ -132,7 +132,76 @@ function bindTabs() {
       tab.classList.add('active');
       document.getElementById('tabUsers').hidden = tab.dataset.tab !== 'users';
       document.getElementById('tabCourses').hidden = tab.dataset.tab !== 'courses';
+      document.getElementById('tabCoupons').hidden = tab.dataset.tab !== 'coupons';
     });
+  });
+}
+
+function couponRowHtml(c) {
+  const expired = c.expires_at && new Date(c.expires_at) < new Date();
+  const maxedOut = c.max_uses && c.used_count >= c.max_uses;
+  const active = c.is_active && !expired && !maxedOut;
+  return `
+    <tr>
+      <td><strong>${escapeHtml(c.code)}</strong></td>
+      <td>${c.discount_percent}%</td>
+      <td>${c.used_count}${c.max_uses ? ' / ' + c.max_uses : ''}</td>
+      <td class="${active ? 'status-active' : 'status-blocked'}">${active ? 'Faol' : 'Faol emas'}</td>
+      <td><button class="btn btn-outline btn-sm toggle-coupon-btn" data-id="${c.id}" data-active="${c.is_active}">${c.is_active ? 'O\'chirish' : 'Yoqish'}</button></td>
+    </tr>
+  `;
+}
+
+async function loadCoupons() {
+  const el = document.getElementById('couponsTable');
+  try {
+    const data = await api.get('/api/admin-panel/coupons/', { auth: true });
+    const coupons = data.results ?? data;
+    el.innerHTML = coupons.length
+      ? `
+        <table class="data-table">
+          <thead><tr><th>Kod</th><th>Chegirma</th><th>Ishlatilgan</th><th>Holat</th><th>Amal</th></tr></thead>
+          <tbody>${coupons.map(couponRowHtml).join('')}</tbody>
+        </table>
+      `
+      : '<p class="muted">Hali chegirma kodlari yo\'q.</p>';
+
+    el.querySelectorAll('.toggle-coupon-btn').forEach((btn) => {
+      btn.addEventListener('click', () => toggleCoupon(btn.dataset.id, btn.dataset.active === 'true'));
+    });
+  } catch {
+    el.innerHTML = '<p class="muted">Chegirma kodlarini yuklab bo\'lmadi.</p>';
+  }
+}
+
+async function toggleCoupon(id, isActive) {
+  try {
+    await api.patch(`/api/admin-panel/coupons/${id}/`, { is_active: !isActive }, { auth: true });
+    loadCoupons();
+  } catch {
+    showAlert('error', 'Yangilashda xatolik.');
+  }
+}
+
+function bindCouponForm() {
+  document.getElementById('couponForm').addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const code = document.getElementById('couponCode').value.trim().toUpperCase();
+    const discount_percent = Number(document.getElementById('couponPercent').value);
+    const maxUsesRaw = document.getElementById('couponMaxUses').value;
+
+    try {
+      await api.post('/api/admin-panel/coupons/', {
+        code,
+        discount_percent,
+        max_uses: maxUsesRaw ? Number(maxUsesRaw) : null,
+      }, { auth: true });
+      showAlert('success', 'Chegirma kodi qo\'shildi.');
+      document.getElementById('couponForm').reset();
+      loadCoupons();
+    } catch (err) {
+      showAlert('error', err instanceof ApiError ? err.message : "Qo'shishda xatolik.");
+    }
   });
 }
 
@@ -155,9 +224,11 @@ async function init() {
   });
 
   bindTabs();
+  bindCouponForm();
   loadStats();
   loadUsers();
   loadPendingCourses();
+  loadCoupons();
 }
 
 init();

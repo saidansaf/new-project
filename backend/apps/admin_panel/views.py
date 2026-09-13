@@ -1,12 +1,14 @@
 from django.contrib.auth import get_user_model
 from django.shortcuts import get_object_or_404
-from rest_framework import generics, permissions
+from rest_framework import generics, permissions, viewsets
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
 from apps.certificates.models import Certificate
 from apps.courses.models import Course
 from apps.enrollments.models import Enrollment
+from apps.payments.models import Coupon
+from apps.payments.serializers import CouponSerializer
 
 from .serializers import AdminCourseSerializer, AdminUserSerializer
 
@@ -68,3 +70,9 @@ class AdminStatsView(APIView):
             'total_enrollments': Enrollment.objects.count(),
             'total_certificates': Certificate.objects.count(),
         })
+
+
+class AdminCouponViewSet(viewsets.ModelViewSet):
+    queryset = Coupon.objects.all().order_by('-created_at')
+    serializer_class = CouponSerializer
+    permission_classes = [IsAdmin]

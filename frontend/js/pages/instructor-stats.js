@@ -1,4 +1,4 @@
-import { api } from '../api.js';
+import { api, ApiError } from '../api.js';
 import { requireAuth } from '../auth.js';
 import { t } from '../i18n.js';
 import { escapeHtml, renderNavbar } from '../navbar.js';
@@ -57,6 +57,63 @@ function renderTable(courses) {
   `;
 }
 
+function submissionRowHtml(s) {
+  const graded = s.grade !== null && s.grade !== undefined;
+  return `
+    <tr>
+      <td>${escapeHtml(s.student_name)}</td>
+      <td>${escapeHtml(s.assignment_title)}</td>
+      <td>${new Date(s.submitted_at).toLocaleString('uz-UZ')}</td>
+      <td style="max-width:220px;">${escapeHtml((s.text || '').slice(0, 80))}${s.file ? ` <a href="${s.file}" target="_blank">📎</a>` : ''}</td>
+      <td>
+        ${graded
+          ? `<span class="badge level-beginner">${s.grade}/100</span>`
+          : `
+            <input type="number" min="0" max="100" class="grade-input" data-id="${s.id}" style="width:60px;" placeholder="0-100" />
+            <button class="btn btn-primary btn-sm grade-btn" data-id="${s.id}">✓</button>
+          `}
+      </td>
+    </tr>
+  `;
+}
+
+async function loadSubmissions() {
+  const el = document.getElementById('submissionsTable');
+  try {
+    const data = await api.get('/api/assignments/instructor-submissions/', { auth: true });
+    const submissions = data.results ?? data;
+    el.innerHTML = submissions.length
+      ? `
+        <table class="data-table">
+          <thead><tr><th>Talaba</th><th>Vazifa</th><th>Topshirilgan</th><th>Javob</th><th>Baho</th></tr></thead>
+          <tbody>${submissions.map(submissionRowHtml).join('')}</tbody>
+        </table>
+      `
+      : `<p class="muted">Hali hech kim uy vazifa topshirmagan.</p>`;
+
+    el.querySelectorAll('.grade-btn').forEach((btn) => {
+      btn.addEventListener('click', () => gradeSubmission(btn.dataset.id));
+    });
+  } catch {
+    el.innerHTML = `<p class="muted">Uy vazifalarini yuklab bo'lmadi.</p>`;
+  }
+}
+
+async function gradeSubmission(id) {
+  const input = document.querySelector(`.grade-input[data-id="${id}"]`);
+  const grade = Number(input.value);
+  if (!input.value || grade < 0 || grade > 100) {
+    alert("Baho 0 dan 100 gacha bo'lishi kerak.");
+    return;
+  }
+  try {
+    await api.patch(`/api/assignments/submissions/${id}/grade/`, { grade }, { auth: true });
+    loadSubmissions();
+  } catch (err) {
+    alert(err instanceof ApiError ? err.message : 'Baholashda xatolik.');
+  }
+}
+
 async function init() {
   await renderNavbar('instructor-stats');
   try {
@@ -66,6 +123,7 @@ async function init() {
   } catch {
     document.getElementById('coursesTable').innerHTML = `<p class="muted">${t('stats_load_error')}</p>`;
   }
+  loadSubmissions();
 }
 
 init();

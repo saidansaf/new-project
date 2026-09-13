@@ -19,6 +19,8 @@ let watchedLessonIds = new Set();
 let activeLessonId = null;
 let ytPlayer = null;
 let isWishlisted = false;
+let videoPositions = {};
+let positionSaveInterval = null;
 
 const LEVEL_LABEL = { beginner: "Boshlang'ich", intermediate: "O'rta", advanced: 'Yuqori' };
 
@@ -50,6 +52,18 @@ async function loadWatchedLessons() {
   }
 }
 
+async function loadVideoPositions() {
+  if (!isAuthenticated()) return;
+  try {
+    videoPositions = await api.get('/api/enrollments/video-positions/', {
+      auth: true,
+      params: { course: courseId },
+    });
+  } catch {
+    videoPositions = {};
+  }
+}
+
 function renderHeader(course) {
   const price = Number(course.price) === 0 ? "Bepul" : `${course.price} so'm`;
   const rating = course.average_rating ? `⭐ ${course.average_rating}` : "Hali baholanmagan";
@@ -65,7 +79,14 @@ function renderHeader(course) {
       <div class="muted" style="margin-top:4px;">Progress: ${pct}% (video 50% + testlar 50%)</div>
     `;
   } else {
-    actionHtml = `<button id="enrollBtn" class="btn btn-primary btn-block">Kursga yozilish (${price})</button>`;
+    actionHtml = `
+      ${Number(course.price) > 0 ? `
+        <div class="form-group" style="margin-bottom:8px;">
+          <input type="text" id="couponInput" placeholder="Chegirma kodi (bo'lsa)" style="text-transform:uppercase;" />
+        </div>
+      ` : ''}
+      <button id="enrollBtn" class="btn btn-primary btn-block">Kursga yozilish (${price})</button>
+    `;
   }
 
   document.getElementById('courseHeader').innerHTML = `
@@ -122,7 +143,13 @@ async function toggleWishlist(course) {
 async function enroll(course) {
   try {
     if (Number(course.price) > 0) {
-      await api.post('/api/payments/checkout/', { course: course.id, payment_method: 'click' }, { auth: true });
+      const couponInput = document.getElementById('couponInput');
+      const couponCode = couponInput ? couponInput.value.trim() : '';
+      await api.post('/api/payments/checkout/', {
+        course: course.id,
+        payment_method: 'click',
+        coupon_code: couponCode,
+      }, { auth: true });
     }
     await api.post('/api/enrollments/', { course: course.id }, { auth: true });
     showAlert('success', Number(course.price) > 0 ? "To'lov qabul qilindi va kursga yozildingiz!" : "Kursga muvaffaqiyatli yozildingiz!");
@@ -145,7 +172,7 @@ function renderSections(sections) {
 
   container.innerHTML = sections.map((section) => `
     <div class="section-block">
-      <div class="section-title">${escapeHtml(section.title)}${section.quiz_id ? ' <span class="badge" style="margin-left:6px;">📝 test bor</span>' : ''}</div>
+      <div class="section-title">${escapeHtml(section.title)}${section.quiz_id ? ' <span class="badge" style="margin-left:6px;">📝 test bor</span>' : ''}${section.assignment_id ? ' <span class="badge" style="margin-left:6px;">📄 uy vazifa</span>' : ''}</div>
       ${(section.lessons || []).map((lesson) => {
         const watched = watchedLessonIds.has(lesson.id);
         const icon = !canView ? '🔒' : watched ? '✅' : '▶️';
@@ -176,6 +203,11 @@ async function openLesson(lessonId) {
   activeLessonId = lessonId;
   renderSections(currentCourse.sections);
 
+  if (positionSaveInterval) {
+    clearInterval(positionSaveInterval);
+    positionSaveInterval = null;
+  }
+
   const videoId = extractYouTubeId(lesson.video_url);
 
   playerPanel.hidden = false;
@@ -188,16 +220,38 @@ async function openLesson(lessonId) {
       ${lesson.content ? `<p style="margin-top:12px;">${escapeHtml(lesson.content)}</p>` : ''}
       ${watchedLessonIds.has(lesson.id) ? '<p class="badge" style="margin-top:8px;">✅ Ko\'rilgan</p>' : '<p class="muted" style="margin-top:8px;">Video oxirigacha ko\'rilganda avtomatik belgilanadi.</p>'}
       <div id="inlineQuizWrap"></div>
+      <div id="inlineAssignmentWrap"></div>
     </div>
   `;
   playerPanel.scrollIntoView({ behavior: 'smooth', block: 'start' });
 
   if (videoId) {
-    ytPlayer = await createPlayer('ytPlayerEl', videoId, () => onLessonWatched(lessonId));
+    const savedPosition = videoPositions[String(lesson.id)] || 0;
+    ytPlayer = await createPlayer('ytPlayerEl', videoId, () => onLessonWatched(lessonId), savedPosition);
+
+    if (isAuthenticated()) {
+      positionSaveInterval = setInterval(() => saveVideoPosition(lesson.id), 5000);
+    }
   }
 
   if (section && section.quiz_id) {
     loadInlineQuiz(section.quiz_id);
+  }
+
+  if (section && section.assignment_id) {
+    loadInlineAssignment(section.assignment_id);
+  }
+}
+
+async function saveVideoPosition(lessonId) {
+  if (!ytPlayer || typeof ytPlayer.getCurrentTime !== 'function') return;
+  try {
+    const position = Math.floor(ytPlayer.getCurrentTime());
+    if (!position) return;
+    await api.post('/api/enrollments/save-position/', { lesson: lessonId, position }, { auth: true });
+    videoPositions[String(lessonId)] = position;
+  } catch {
+    // jim o'tkazamiz — pozitsiyani saqlab bo'lmasa ham video ko'rishga xalaqit bermaydi
   }
 }
 
@@ -282,6 +336,72 @@ function renderQuizResult(wrap, result) {
   `;
 }
 
+async function loadInlineAssignment(assignmentId) {
+  const wrap = document.getElementById('inlineAssignmentWrap');
+  if (!wrap) return;
+  wrap.innerHTML = '<p class="muted" style="margin-top:16px;">Uy vazifa yuklanmoqda...</p>';
+
+  try {
+    const assignment = await api.get(`/api/assignments/${assignmentId}/`, { auth: true });
+    let mySubmission = null;
+    if (isAuthenticated()) {
+      const subsData = await api.get('/api/assignments/my-submissions/', { auth: true, params: { assignment: assignmentId } });
+      const subs = subsData.results ?? subsData;
+      mySubmission = (subs || [])[0] || null;
+    }
+    renderInlineAssignment(wrap, assignment, mySubmission);
+  } catch {
+    wrap.innerHTML = '<p class="muted" style="margin-top:16px;">Uy vazifani yuklab bo\'lmadi.</p>';
+  }
+}
+
+function renderInlineAssignment(wrap, assignment, mySubmission) {
+  wrap.innerHTML = `
+    <hr style="border:none;border-top:1px solid var(--color-border);margin:20px 0 16px;" />
+    <h4>📄 ${escapeHtml(assignment.title)}</h4>
+    ${assignment.description ? `<p class="muted">${escapeHtml(assignment.description)}</p>` : ''}
+    ${mySubmission && mySubmission.grade !== null && mySubmission.grade !== undefined ? `
+      <div class="quiz-result-box" style="margin-top:12px;">
+        <div class="score">${mySubmission.grade}/${assignment.max_score}</div>
+        ${mySubmission.feedback ? `<p>${escapeHtml(mySubmission.feedback)}</p>` : ''}
+      </div>
+    ` : ''}
+    <form id="assignmentForm" style="margin-top:12px;">
+      <div class="form-group">
+        <label>Javobingiz</label>
+        <textarea id="assignmentText" rows="4" placeholder="Vazifa yechimini shu yerga yozing...">${mySubmission ? escapeHtml(mySubmission.text || '') : ''}</textarea>
+      </div>
+      <div class="form-group">
+        <label>Fayl (ixtiyoriy)</label>
+        <input type="file" id="assignmentFile" />
+        ${mySubmission && mySubmission.file ? `<a href="${mySubmission.file}" target="_blank" class="muted">Oldingi yuklangan fayl</a>` : ''}
+      </div>
+      <button type="submit" class="btn btn-primary" style="margin-top:4px;">
+        ${mySubmission ? "Qayta topshirish" : 'Topshirish'}
+      </button>
+    </form>
+    <div id="assignmentSubmitMsg"></div>
+  `;
+
+  document.getElementById('assignmentForm').addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const formData = new FormData();
+    formData.append('assignment', assignment.id);
+    formData.append('text', document.getElementById('assignmentText').value.trim());
+    const fileInput = document.getElementById('assignmentFile');
+    if (fileInput.files[0]) formData.append('file', fileInput.files[0]);
+
+    const msgEl = document.getElementById('assignmentSubmitMsg');
+    try {
+      const submission = await api.postForm('/api/assignments/submit/', formData, { auth: true });
+      msgEl.innerHTML = '<p class="alert alert-success" style="margin-top:8px;">Vazifa topshirildi!</p>';
+      renderInlineAssignment(wrap, assignment, submission);
+    } catch (err) {
+      msgEl.innerHTML = `<p class="alert alert-error" style="margin-top:8px;">${err instanceof ApiError ? err.message : 'Topshirishda xatolik.'}</p>`;
+    }
+  });
+}
+
 function reviewItemHtml(review) {
   return `
     <div class="review-item">
@@ -353,6 +473,7 @@ async function init() {
   currentUser = await renderNavbar('');
   currentEnrollment = await findMyEnrollment();
   await loadWatchedLessons();
+  await loadVideoPositions();
   await checkWishlist();
 
   try {

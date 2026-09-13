@@ -1,0 +1,42 @@
+<!doctype html>
+<html lang="uz">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <script>try{if(localStorage.getItem('edunest_theme')==='dark')document.documentElement.classList.add('dark-theme');}catch(e){}</script>
+  <title>Yutuqlar — EduNest</title>
+  <link rel="stylesheet" href="css/style.css" />
+  <style>
+    .badge-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(180px, 1fr)); gap: 16px; margin-top: 16px; }
+    .badge-card { background: var(--color-surface); border: 1px solid var(--color-border); border-radius: var(--radius); padding: 20px; text-align: center; }
+    .badge-card .icon { font-size: 40px; }
+    .badge-card .title { font-weight: 700; margin-top: 8px; }
+    .badge-card .desc { font-size: 12px; color: var(--color-text-muted); margin-top: 4px; }
+    .badge-card.locked { opacity: 0.4; filter: grayscale(1); }
+  </style>
+</head>
+<body>
+  <div id="navbar"></div>
+
+  <div class="app-shell">
+    <div id="sidebar"></div>
+    <div class="app-main">
+      <div class="container">
+        <h1 style="margin-top:24px;" data-i18n="achievements_title">🏆 Yutuqlar</h1>
+        <p class="muted" data-i18n="achievements_subtitle">Kurslarni tugatib, faol bo'lib, yutuqlar to'plang.</p>
+
+        <h3 style="margin-top:24px;" data-i18n="achievements_earned">✅ Qo'lga kiritilgan</h3>
+        <div id="earnedGrid" class="badge-grid"><p class="muted" data-i18n="loading">Yuklanmoqda...</p></div>
+
+        <h3 style="margin-top:24px;" data-i18n="achievements_locked">🔒 Hali ochilmagan</h3>
+        <div id="lockedGrid" class="badge-grid"></div>
+      </div>
+
+      <div class="footer">© 2026 EduNest — Online Ta'lim Platformasi</div>
+    </div>
+  </div>
+
+  <script type="module" src="js/pages/achievements.js"></script>
+  <script type="module" src="js/ai-chat.js"></script>
+</body>
+</html>

@@ -12,6 +12,10 @@ const form = document.getElementById('registerForm');
 const alertBox = document.getElementById('alertBox');
 const submitBtn = document.getElementById('submitBtn');
 
+if (new URLSearchParams(window.location.search).get('ref')) {
+  alertBox.innerHTML = '<div class="alert alert-info">🤝 Do\'stingiz taklifi orqali keldingiz!</div>';
+}
+
 const NETWORK_ERROR_MESSAGE =
   "Serverga ulanib bo'lmadi (server sekin uyg'onayotgan bo'lishi mumkin). Internetni tekshirib, birozdan so'ng qayta urinib ko'ring.";
 
@@ -32,6 +36,8 @@ form.addEventListener('submit', async (e) => {
   submitBtn.disabled = true;
   submitBtn.textContent = 'Yuborilmoqda...';
 
+  const refCode = new URLSearchParams(window.location.search).get('ref') || '';
+
   const payload = {
     first_name: document.getElementById('firstName').value.trim(),
     last_name: document.getElementById('lastName').value.trim(),
@@ -39,6 +45,7 @@ form.addEventListener('submit', async (e) => {
     email: document.getElementById('email').value.trim(),
     password: document.getElementById('password').value,
     role: document.getElementById('role').value,
+    referral_code: refCode,
   };
 
   try {

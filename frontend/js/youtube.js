@@ -29,13 +29,14 @@ export function extractYouTubeId(url) {
 
 /**
  * `elementId` konteyner ichida YouTube pleer yaratadi va video tugaganda
- * `onEnded` callback'ini chaqiradi.
+ * `onEnded` callback'ini chaqiradi. `startSeconds` berilsa, video shu joydan
+ * (avval to'xtatilgan joyidan) davom etadi.
  */
-export async function createPlayer(elementId, videoId, onEnded) {
+export async function createPlayer(elementId, videoId, onEnded, startSeconds = 0) {
   await loadYouTubeAPI();
   return new window.YT.Player(elementId, {
     videoId,
-    playerVars: { rel: 0 },
+    playerVars: { rel: 0, start: Math.max(0, Math.floor(startSeconds || 0)) },
     events: {
       onStateChange: (event) => {
         if (event.data === window.YT.PlayerState.ENDED) {

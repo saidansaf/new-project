@@ -1,6 +1,6 @@
 from django.contrib import admin
 
-from .models import Enrollment, LessonProgress, Wishlist
+from .models import Enrollment, LessonProgress, VideoPosition, Wishlist
 
 
 @admin.register(Enrollment)
@@ -17,3 +17,8 @@ class LessonProgressAdmin(admin.ModelAdmin):
 @admin.register(Wishlist)
 class WishlistAdmin(admin.ModelAdmin):
     list_display = ('student', 'course', 'created_at')
+
+
+@admin.register(VideoPosition)
+class VideoPositionAdmin(admin.ModelAdmin):
+    list_display = ('student', 'lesson', 'position_seconds', 'updated_at')

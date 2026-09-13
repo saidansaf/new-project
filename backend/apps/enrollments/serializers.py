@@ -33,6 +33,11 @@ class WatchLessonSerializer(serializers.Serializer):
     lesson = serializers.IntegerField()
 
 
+class SavePositionSerializer(serializers.Serializer):
+    lesson = serializers.IntegerField()
+    position = serializers.IntegerField(min_value=0)
+
+
 class WishlistSerializer(serializers.ModelSerializer):
     course_title = serializers.CharField(source='course.title', read_only=True)
     course_price = serializers.DecimalField(source='course.price', read_only=True, max_digits=10, decimal_places=2)

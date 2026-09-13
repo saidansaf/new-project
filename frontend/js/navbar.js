@@ -245,6 +245,7 @@ function renderSidebar(activePage, user) {
       ${user ? link('dashboard.html', '🏠', t('dashboard'), 'dashboard') : ''}
       ${user ? link('wishlist.html', '♥', t('wishlist_nav'), 'wishlist') : ''}
       ${user ? link('payments.html', '💳', t('payments_nav'), 'payments') : ''}
+      ${user ? link('achievements.html', '🏆', t('achievements_nav'), 'achievements') : ''}
       ${isInstructor ? link('create-course.html', '➕', t('create_course'), 'create-course') : ''}
       ${isInstructor ? link('instructor-stats.html', '📊', t('instructor_stats_nav'), 'instructor-stats') : ''}
       ${user && user.is_staff ? link('admin-panel.html', '🛡️', t('admin'), 'admin') : ''}

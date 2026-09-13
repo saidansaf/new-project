@@ -87,6 +87,22 @@ async function loadCertificates() {
   }
 }
 
+function renderReferral(user) {
+  const link = `${window.location.origin}/register.html?ref=${user.referral_code}`;
+  document.getElementById('referralLinkInput').value = link;
+  document.getElementById('referralCount').textContent =
+    `${t('referral_invited')}: ${user.referrals_count ?? 0}`;
+
+  document.getElementById('copyReferralBtn').addEventListener('click', async () => {
+    try {
+      await navigator.clipboard.writeText(link);
+      showAlert('success', t('referral_copied'));
+    } catch {
+      showAlert('error', t('referral_copy_error'));
+    }
+  });
+}
+
 function bindTelegramLink() {
   document.getElementById('telegramLinkBtn').addEventListener('click', async () => {
     try {
@@ -109,6 +125,7 @@ async function init() {
   const user = await renderNavbar('dashboard');
   if (!user) return;
   renderProfile(user);
+  renderReferral(user);
   bindTelegramLink();
   loadMyCourses();
   loadNotifications();

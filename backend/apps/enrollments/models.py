@@ -51,3 +51,21 @@ class LessonProgress(models.Model):
 
     def __str__(self):
         return f'{self.student} watched {self.lesson}'
+
+
+class VideoPosition(models.Model):
+    """Video hali tugamagan bo'lsa ham, talaba qayerda to'xtaganini saqlaydi —
+    keyingi safar shu joydan davom ettirish uchun."""
+
+    student = models.ForeignKey(
+        settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name='video_positions'
+    )
+    lesson = models.ForeignKey(Lesson, on_delete=models.CASCADE, related_name='video_positions')
+    position_seconds = models.PositiveIntegerField(default=0)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        unique_together = ('student', 'lesson')
+
+    def __str__(self):
+        return f'{self.student} @ {self.lesson} ({self.position_seconds}s)'

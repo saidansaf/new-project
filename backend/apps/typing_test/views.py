@@ -8,6 +8,11 @@ class TypingResultCreateView(generics.CreateAPIView):
     serializer_class = TypingResultSerializer
     permission_classes = [permissions.IsAuthenticated]
 
+    def perform_create(self, serializer):
+        result = serializer.save()
+        from apps.achievements.awards import check_typing_badge
+        check_typing_badge(self.request.user, result.wpm)
+
 
 class TypingLeaderboardView(generics.ListAPIView):
     serializer_class = TypingResultSerializer

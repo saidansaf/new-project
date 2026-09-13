@@ -45,4 +45,9 @@ def recalculate_progress(student, course) -> int:
     if enrollment.progress_percent != percent:
         enrollment.progress_percent = percent
         enrollment.save(update_fields=['progress_percent'])
+
+        if percent == 100:
+            from apps.achievements.awards import check_course_completion_badges
+            check_course_completion_badges(student)
+
     return percent
