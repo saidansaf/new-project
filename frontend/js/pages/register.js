@@ -12,6 +12,9 @@ const form = document.getElementById('registerForm');
 const alertBox = document.getElementById('alertBox');
 const submitBtn = document.getElementById('submitBtn');
 
+const NETWORK_ERROR_MESSAGE =
+  "Serverga ulanib bo'lmadi (server sekin uyg'onayotgan bo'lishi mumkin). Internetni tekshirib, birozdan so'ng qayta urinib ko'ring.";
+
 function showError(message) {
   alertBox.innerHTML = `<div class="alert alert-error">${message}</div>`;
 }
@@ -38,30 +41,32 @@ form.addEventListener('submit', async (e) => {
     role: document.getElementById('role').value,
   };
 
-  let registered = false;
   try {
     await api.post('/api/auth/register/', payload);
-    registered = true;
-    // Ro'yxatdan o'tgach avtomatik login qilamiz
+  } catch (registerErr) {
+    if (registerErr instanceof ApiError) {
+      showError(formatErrors(registerErr.data));
+      submitBtn.disabled = false;
+      submitBtn.textContent = "Ro'yxatdan o'tish";
+      return;
+    }
+    // Tarmoq xatosi (masalan "Failed to fetch") — server so'rovni aslida qabul qilib,
+    // akkauntni yaratgan bo'lishi mumkin, faqat javob mijozga yetib kelmagan. Buni
+    // aniqlashning yagona xavfsiz yo'li — login bilan tekshirib ko'rish (pastda).
+  }
+
+  try {
     const loginData = await api.post('/api/auth/login/', {
       username: payload.username,
       password: payload.password,
     });
     setTokens(loginData.access, loginData.refresh);
     window.location.href = 'dashboard.html';
-  } catch (err) {
-    if (registered) {
-      // Akkount muvaffaqiyatli yaratildi, faqat avtomatik-kirish so'rovi (masalan tarmoq
-      // sekinligi tufayli) muvaffaqiyatsiz bo'ldi — foydalanuvchini qo'rqitmasdan login
-      // sahifasiga yo'naltiramiz, u yerda oddiy parol bilan kirishi mumkin.
-      window.location.href = 'login.html';
-      return;
-    }
-    if (err instanceof ApiError) {
-      showError(formatErrors(err.data));
-    } else {
-      showError('Xatolik yuz berdi: ' + err.message);
-    }
+    return;
+  } catch {
+    // Ikkala urinish ham muvaffaqiyatsiz bo'lsa — bu login/parol xatosi emas
+    // (chunki parolni biz o'zimiz yubordik), balki server bilan haqiqiy muammo.
+    showError(NETWORK_ERROR_MESSAGE);
   } finally {
     submitBtn.disabled = false;
     submitBtn.textContent = "Ro'yxatdan o'tish";

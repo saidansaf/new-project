@@ -40,8 +40,10 @@ form.addEventListener('submit', async (e) => {
   } catch (err) {
     if (err instanceof ApiError && err.status === 401) {
       showError("Login yoki parol noto'g'ri.");
+    } else if (err instanceof ApiError) {
+      showError(err.message);
     } else {
-      showError('Xatolik yuz berdi: ' + err.message);
+      showError("Serverga ulanib bo'lmadi (server sekin uyg'onayotgan bo'lishi mumkin). Birozdan so'ng qayta urinib ko'ring.");
     }
   } finally {
     submitBtn.disabled = false;
