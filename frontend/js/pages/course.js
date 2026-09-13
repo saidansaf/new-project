@@ -109,19 +109,13 @@ function renderSections(sections) {
 
   container.innerHTML = sections.map((section) => `
     <div class="section-block">
-      <div class="section-title">${escapeHtml(section.title)}</div>
+      <div class="section-title">${escapeHtml(section.title)}${section.quiz_id ? ' <span class="badge" style="margin-left:6px;">📝 test bor</span>' : ''}</div>
       ${(section.lessons || []).map((lesson) => {
         const watched = watchedLessonIds.has(lesson.id);
         const icon = !canView ? '🔒' : watched ? '✅' : '▶️';
         const classes = ['lesson-item', canView ? 'clickable' : '', watched ? 'watched' : '', lesson.id === activeLessonId ? 'active' : ''].join(' ');
         return `<div class="${classes}" data-lesson-id="${lesson.id}">${icon} ${escapeHtml(lesson.title)}</div>`;
       }).join('') || '<div class="lesson-item muted">Darslar hali qo\'shilmagan.</div>'}
-      ${section.quiz_id ? `
-        <div class="quiz-row">
-          <span>📝 Bo'lim testi</span>
-          <button class="btn btn-outline btn-sm quiz-open-btn" data-quiz-id="${section.quiz_id}" ${canView ? '' : 'disabled'}>Testni boshlash</button>
-        </div>
-      ` : ''}
     </div>
   `).join('');
 
@@ -130,21 +124,18 @@ function renderSections(sections) {
       el.addEventListener('click', () => openLesson(Number(el.dataset.lessonId)));
     });
   }
-  container.querySelectorAll('.quiz-open-btn').forEach((btn) => {
-    btn.addEventListener('click', () => openQuiz(Number(btn.dataset.quizId)));
-  });
 }
 
-function findLesson(lessonId) {
+function findLessonAndSection(lessonId) {
   for (const section of currentCourse.sections || []) {
     const lesson = (section.lessons || []).find((l) => l.id === lessonId);
-    if (lesson) return lesson;
+    if (lesson) return { lesson, section };
   }
-  return null;
+  return { lesson: null, section: null };
 }
 
 async function openLesson(lessonId) {
-  const lesson = findLesson(lessonId);
+  const { lesson, section } = findLessonAndSection(lessonId);
   if (!lesson) return;
   activeLessonId = lessonId;
   renderSections(currentCourse.sections);
@@ -160,12 +151,17 @@ async function openLesson(lessonId) {
         : '<p class="muted">Bu darsga video hali biriktirilmagan.</p>'}
       ${lesson.content ? `<p style="margin-top:12px;">${escapeHtml(lesson.content)}</p>` : ''}
       ${watchedLessonIds.has(lesson.id) ? '<p class="badge" style="margin-top:8px;">✅ Ko\'rilgan</p>' : '<p class="muted" style="margin-top:8px;">Video oxirigacha ko\'rilganda avtomatik belgilanadi.</p>'}
+      <div id="inlineQuizWrap"></div>
     </div>
   `;
   playerPanel.scrollIntoView({ behavior: 'smooth', block: 'start' });
 
   if (videoId) {
     ytPlayer = await createPlayer('ytPlayerEl', videoId, () => onLessonWatched(lessonId));
+  }
+
+  if (section && section.quiz_id) {
+    loadInlineQuiz(section.quiz_id);
   }
 }
 
@@ -183,38 +179,37 @@ async function onLessonWatched(lessonId) {
   }
 }
 
-async function openQuiz(quizId) {
-  playerPanel.hidden = false;
-  playerPanel.innerHTML = '<div class="player-panel"><p class="muted">Test yuklanmoqda...</p></div>';
-  playerPanel.scrollIntoView({ behavior: 'smooth', block: 'start' });
+async function loadInlineQuiz(quizId) {
+  const wrap = document.getElementById('inlineQuizWrap');
+  if (!wrap) return;
+  wrap.innerHTML = '<p class="muted" style="margin-top:16px;">Test yuklanmoqda...</p>';
 
   try {
     const quiz = await api.get(`/api/quizzes/${quizId}/`, { auth: true });
-    renderQuiz(quiz);
+    renderInlineQuiz(wrap, quiz);
   } catch {
-    playerPanel.innerHTML = '<div class="player-panel"><p class="muted">Testni yuklab bo\'lmadi.</p></div>';
+    wrap.innerHTML = '<p class="muted" style="margin-top:16px;">Testni yuklab bo\'lmadi.</p>';
   }
 }
 
-function renderQuiz(quiz) {
-  playerPanel.innerHTML = `
-    <div class="player-panel">
-      <h3>📝 ${escapeHtml(quiz.title)}</h3>
-      <form id="quizForm">
-        ${quiz.questions.map((q) => `
-          <div class="quiz-question">
-            <p>${escapeHtml(q.text)}</p>
-            ${q.answers.map((a) => `
-              <label class="quiz-option">
-                <input type="${q.question_type === 'multiple' ? 'checkbox' : 'radio'}" name="q_${q.id}" value="${a.id}" />
-                ${escapeHtml(a.text)}
-              </label>
-            `).join('')}
-          </div>
-        `).join('')}
-        <button type="submit" class="btn btn-primary" style="margin-top:12px;">Javoblarni yuborish</button>
-      </form>
-    </div>
+function renderInlineQuiz(wrap, quiz) {
+  wrap.innerHTML = `
+    <hr style="border:none;border-top:1px solid var(--color-border);margin:20px 0 16px;" />
+    <h4>📝 ${escapeHtml(quiz.title)}</h4>
+    <form id="quizForm">
+      ${quiz.questions.map((q) => `
+        <div class="quiz-question">
+          <p>${escapeHtml(q.text)}</p>
+          ${q.answers.map((a, i) => `
+            <label class="quiz-option">
+              <input type="${q.question_type === 'multiple' ? 'checkbox' : 'radio'}" name="q_${q.id}" value="${a.id}" />
+              ${String.fromCharCode(65 + i)}) ${escapeHtml(a.text)}
+            </label>
+          `).join('')}
+        </div>
+      `).join('')}
+      <button type="submit" class="btn btn-primary" style="margin-top:12px;">Javoblarni yuborish</button>
+    </form>
   `;
 
   document.getElementById('quizForm').addEventListener('submit', async (e) => {
@@ -227,7 +222,7 @@ function renderQuiz(quiz) {
 
     try {
       const result = await api.post(`/api/quizzes/${quiz.id}/submit/`, { answers }, { auth: true });
-      renderQuizResult(result);
+      renderQuizResult(wrap, result);
       if (currentEnrollment && result.progress_percent !== null && result.progress_percent !== undefined) {
         currentEnrollment.progress_percent = result.progress_percent;
         renderHeader(currentCourse);
@@ -238,9 +233,10 @@ function renderQuiz(quiz) {
   });
 }
 
-function renderQuizResult(result) {
-  playerPanel.innerHTML = `
-    <div class="player-panel quiz-result-box">
+function renderQuizResult(wrap, result) {
+  wrap.innerHTML = `
+    <hr style="border:none;border-top:1px solid var(--color-border);margin:20px 0 16px;" />
+    <div class="quiz-result-box">
       <div class="score">${result.score}%</div>
       <p>${result.correct} / ${result.total} to'g'ri javob</p>
       <p class="badge" style="background:${result.passed ? '#ecfdf5' : '#fef2f2'};color:${result.passed ? 'var(--color-success)' : 'var(--color-danger)'};">
