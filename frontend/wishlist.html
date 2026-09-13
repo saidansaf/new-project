@@ -1,0 +1,32 @@
+<!doctype html>
+<html lang="uz">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <script>try{if(localStorage.getItem('edunest_theme')==='dark')document.documentElement.classList.add('dark-theme');}catch(e){}</script>
+  <title>Sevimlilar — EduNest</title>
+  <link rel="stylesheet" href="css/style.css" />
+</head>
+<body>
+  <div id="navbar"></div>
+
+  <div class="app-shell">
+    <div id="sidebar"></div>
+    <div class="app-main">
+      <div class="container">
+        <h1 style="margin-top:24px;" data-i18n="wishlist_title">♥ Sevimlilar</h1>
+        <p class="muted" data-i18n="wishlist_subtitle">Keyinroq ko'rish uchun belgilab qo'ygan kurslaringiz.</p>
+
+        <div id="wishlistGrid" class="grid">
+          <p class="muted" data-i18n="loading">Yuklanmoqda...</p>
+        </div>
+      </div>
+
+      <div class="footer">© 2026 EduNest — Online Ta'lim Platformasi</div>
+    </div>
+  </div>
+
+  <script type="module" src="js/pages/wishlist.js"></script>
+  <script type="module" src="js/ai-chat.js"></script>
+</body>
+</html>

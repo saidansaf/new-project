@@ -4,6 +4,7 @@ from rest_framework.response import Response
 from rest_framework.views import APIView
 
 from apps.courses.models import Course
+from apps.notifications.utils import send_notification
 
 from .models import Payment
 from .serializers import CheckoutSerializer, PaymentSerializer
@@ -30,6 +31,10 @@ class CheckoutView(APIView):
             amount=course.price,
             payment_method=serializer.validated_data['payment_method'],
             status=Payment.Status.PAID,  # TODO: haqiqiy gateway ulanganda PENDING qilib, webhook kutiladi
+        )
+        send_notification(
+            request.user,
+            f'"{course.title}" kursi uchun {payment.amount} so\'m to\'lovingiz qabul qilindi!',
         )
         return Response(PaymentSerializer(payment).data, status=status.HTTP_201_CREATED)
 

@@ -1,14 +1,16 @@
 from django.shortcuts import get_object_or_404
-from rest_framework import permissions, status, viewsets
+from rest_framework import generics, permissions, status, viewsets
 from rest_framework.decorators import action
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
 from apps.courses.models import Lesson
 
-from .models import Enrollment, LessonProgress
+from .models import Enrollment, LessonProgress, Wishlist
 from .progress import recalculate_progress
-from .serializers import EnrollmentSerializer, ProgressUpdateSerializer, WatchLessonSerializer
+from .serializers import (
+    EnrollmentSerializer, ProgressUpdateSerializer, WatchLessonSerializer, WishlistSerializer,
+)
 
 
 class EnrollmentViewSet(viewsets.ModelViewSet):
@@ -70,3 +72,19 @@ class WatchLessonView(APIView):
         LessonProgress.objects.get_or_create(student=request.user, lesson=lesson)
         percent = recalculate_progress(request.user, course)
         return Response({'progress_percent': percent})
+
+
+class WishlistListCreateView(generics.ListCreateAPIView):
+    serializer_class = WishlistSerializer
+    permission_classes = [permissions.IsAuthenticated]
+
+    def get_queryset(self):
+        return Wishlist.objects.filter(student=self.request.user)
+
+
+class WishlistDeleteView(APIView):
+    permission_classes = [permissions.IsAuthenticated]
+
+    def delete(self, request, course_id):
+        Wishlist.objects.filter(student=request.user, course_id=course_id).delete()
+        return Response(status=status.HTTP_204_NO_CONTENT)

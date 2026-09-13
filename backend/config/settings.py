@@ -187,3 +187,18 @@ PAYME_MERCHANT_ID = env('PAYME_MERCHANT_ID', default='')
 # --- AI chat (Groq) ---
 GROQ_API_KEY = env('GROQ_API_KEY', default='')
 GROQ_MODEL = env('GROQ_MODEL', default='openai/gpt-oss-20b')
+
+# --- Email bildirishnomalar ---
+# EMAIL_HOST bo'sh bo'lsa — xatlar konsolga (server logiga) chiqariladi (SMTP sozlanmagan
+# lokal/demo muhit uchun qulay). Haqiqiy yuborish uchun .env'da EMAIL_HOST va boshqalarni to'ldiring.
+if env('EMAIL_HOST', default=''):
+    EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
+    EMAIL_HOST = env('EMAIL_HOST')
+    EMAIL_PORT = env.int('EMAIL_PORT', default=587)
+    EMAIL_HOST_USER = env('EMAIL_HOST_USER', default='')
+    EMAIL_HOST_PASSWORD = env('EMAIL_HOST_PASSWORD', default='')
+    EMAIL_USE_TLS = env.bool('EMAIL_USE_TLS', default=True)
+else:
+    EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
+
+DEFAULT_FROM_EMAIL = env('DEFAULT_FROM_EMAIL', default='EduNest <noreply@edunest.local>')

@@ -2,10 +2,11 @@ from asgiref.sync import async_to_sync
 from channels.layers import get_channel_layer
 
 from .models import Notification
+from .tasks import send_notification_email
 
 
 def send_notification(user, message: str):
-    """DB'ga bildirishnoma yozadi va (agar ulangan bo'lsa) WebSocket orqali real-time yuboradi."""
+    """DB'ga bildirishnoma yozadi, WebSocket orqali (agar ulangan bo'lsa) va emailga yuboradi."""
     notification = Notification.objects.create(user=user, message=message)
 
     channel_layer = get_channel_layer()
@@ -21,4 +22,8 @@ def send_notification(user, message: str):
                 },
             },
         )
+
+    if user.email:
+        send_notification_email.delay(user.email, message)
+
     return notification

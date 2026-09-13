@@ -18,6 +18,7 @@ let currentCourse = null;
 let watchedLessonIds = new Set();
 let activeLessonId = null;
 let ytPlayer = null;
+let isWishlisted = false;
 
 const LEVEL_LABEL = { beginner: "Boshlang'ich", intermediate: "O'rta", advanced: 'Yuqori' };
 
@@ -77,6 +78,7 @@ function renderHeader(course) {
     <div class="course-actions">
       <div class="price" style="font-size:22px;">${price}</div>
       ${actionHtml}
+      ${isAuthenticated() ? `<button id="wishlistBtn" class="btn btn-outline btn-block">${isWishlisted ? '♥ Sevimlilardan olib tashlash' : '♡ Sevimlilarga qo\'shish'}</button>` : ''}
     </div>
   `;
 
@@ -84,6 +86,37 @@ function renderHeader(course) {
 
   const enrollBtn = document.getElementById('enrollBtn');
   if (enrollBtn) enrollBtn.addEventListener('click', () => enroll(course));
+
+  const wishlistBtn = document.getElementById('wishlistBtn');
+  if (wishlistBtn) wishlistBtn.addEventListener('click', () => toggleWishlist(course));
+}
+
+async function checkWishlist() {
+  if (!isAuthenticated()) return;
+  try {
+    const data = await api.get('/api/enrollments/wishlist/', { auth: true });
+    const items = data.results ?? data;
+    isWishlisted = items.some((item) => String(item.course) === String(courseId));
+  } catch {
+    isWishlisted = false;
+  }
+}
+
+async function toggleWishlist(course) {
+  try {
+    if (isWishlisted) {
+      await api.delete(`/api/enrollments/wishlist/${course.id}/`, { auth: true });
+      isWishlisted = false;
+      showAlert('success', "Sevimlilardan olib tashlandi.");
+    } else {
+      await api.post('/api/enrollments/wishlist/', { course: course.id }, { auth: true });
+      isWishlisted = true;
+      showAlert('success', "Sevimlilarga qo'shildi!");
+    }
+    renderHeader(course);
+  } catch (err) {
+    showAlert('error', err instanceof ApiError ? err.message : "Amalni bajarib bo'lmadi.");
+  }
 }
 
 async function enroll(course) {
@@ -320,6 +353,7 @@ async function init() {
   currentUser = await renderNavbar('');
   currentEnrollment = await findMyEnrollment();
   await loadWatchedLessons();
+  await checkWishlist();
 
   try {
     const course = await api.get(`/api/courses/${courseId}/`, { auth: isAuthenticated() });

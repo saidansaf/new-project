@@ -1,0 +1,40 @@
+<!doctype html>
+<html lang="uz">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <script>try{if(localStorage.getItem('edunest_theme')==='dark')document.documentElement.classList.add('dark-theme');}catch(e){}</script>
+  <title>O'qituvchi statistikasi — EduNest</title>
+  <link rel="stylesheet" href="css/style.css" />
+  <style>
+    .stat-cards { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 14px; margin: 20px 0; }
+    .stat-card { background: var(--color-surface); border: 1px solid var(--color-border); border-radius: var(--radius); padding: 16px; text-align: center; }
+    .stat-card .value { font-size: 24px; font-weight: 800; color: var(--color-primary); }
+    .stat-card .label { font-size: 12px; color: var(--color-text-muted); margin-top: 4px; }
+    table.data-table { width: 100%; border-collapse: collapse; background: var(--color-surface); border: 1px solid var(--color-border); border-radius: var(--radius); overflow: hidden; margin-top: 16px; }
+    table.data-table th, table.data-table td { padding: 10px 14px; text-align: left; border-bottom: 1px solid var(--color-border); font-size: 14px; }
+    table.data-table th { background: var(--color-primary-light); color: var(--color-primary-dark); font-size: 12px; text-transform: uppercase; }
+  </style>
+</head>
+<body>
+  <div id="navbar"></div>
+
+  <div class="app-shell">
+    <div id="sidebar"></div>
+    <div class="app-main">
+      <div class="container">
+        <h1 style="margin-top:24px;" data-i18n="instructor_stats_title">📊 O'qituvchi statistikasi</h1>
+        <p class="muted" data-i18n="instructor_stats_subtitle">Sizning kurslaringiz bo'yicha umumiy ko'rsatkichlar.</p>
+
+        <div id="summaryCards" class="stat-cards"></div>
+        <div id="coursesTable"><p class="muted" data-i18n="loading">Yuklanmoqda...</p></div>
+      </div>
+
+      <div class="footer">© 2026 EduNest — Online Ta'lim Platformasi</div>
+    </div>
+  </div>
+
+  <script type="module" src="js/pages/instructor-stats.js"></script>
+  <script type="module" src="js/ai-chat.js"></script>
+</body>
+</html>

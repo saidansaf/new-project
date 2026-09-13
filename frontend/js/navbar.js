@@ -243,8 +243,10 @@ function renderSidebar(activePage, user) {
       ${link('index.html', '📚', t('courses'), 'courses')}
       ${link('typing-test.html', '⌨️', t('typing'), 'typing')}
       ${user ? link('dashboard.html', '🏠', t('dashboard'), 'dashboard') : ''}
+      ${user ? link('wishlist.html', '♥', t('wishlist_nav'), 'wishlist') : ''}
       ${user ? link('payments.html', '💳', t('payments_nav'), 'payments') : ''}
       ${isInstructor ? link('create-course.html', '➕', t('create_course'), 'create-course') : ''}
+      ${isInstructor ? link('instructor-stats.html', '📊', t('instructor_stats_nav'), 'instructor-stats') : ''}
       ${user && user.is_staff ? link('admin-panel.html', '🛡️', t('admin'), 'admin') : ''}
     </div>
   `;

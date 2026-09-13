@@ -1,5 +1,7 @@
-from django.db.models import Q
-from rest_framework import viewsets
+from django.db.models import Q, Sum
+from rest_framework import permissions, viewsets
+from rest_framework.response import Response
+from rest_framework.views import APIView
 
 from .models import Category, Course, Lesson, Section
 from .permissions import IsInstructorOrReadOnly
@@ -49,3 +51,27 @@ class LessonViewSet(viewsets.ModelViewSet):
     serializer_class = LessonSerializer
     permission_classes = [IsInstructorOrReadOnly]
     filterset_fields = ['section']
+
+
+class InstructorStatsView(APIView):
+    """Joriy foydalanuvchi (instructor) o'z kurslari bo'yicha statistikasi."""
+
+    permission_classes = [permissions.IsAuthenticated]
+
+    def get(self, request):
+        courses = Course.objects.filter(instructor=request.user).order_by('-created_at')
+        data = []
+        for course in courses:
+            ratings = list(course.reviews.values_list('rating', flat=True))
+            revenue = course.payments.filter(status='paid').aggregate(total=Sum('amount'))['total'] or 0
+            data.append({
+                'id': course.id,
+                'title': course.title,
+                'is_approved': course.is_approved,
+                'price': str(course.price),
+                'enrollments_count': course.enrollments.count(),
+                'average_rating': round(sum(ratings) / len(ratings), 1) if ratings else None,
+                'reviews_count': len(ratings),
+                'total_revenue': str(revenue),
+            })
+        return Response(data)
