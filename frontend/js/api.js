@@ -46,7 +46,20 @@ async function request(path, { method = 'GET', body, auth = false, params } = {}
 
   const doFetch = () => fetch(url, { method, headers, body: body !== undefined ? JSON.stringify(body) : undefined });
 
-  let response = await doFetch();
+  // Render'ning bepul xizmati uzoq turgandan keyin "uyqudan uyg'onadi" — birinchi so'rov
+  // ba'zan vaqt yetishmasligi yoki vaqtinchalik xatolik bilan tugaydi. Shu holatlarda
+  // bir marta kutib, qayta urinib ko'ramiz (foydalanuvchiga darhol xato ko'rsatmasdan).
+  let response;
+  try {
+    response = await doFetch();
+    if (response.status >= 502 && response.status <= 504) {
+      await new Promise((r) => setTimeout(r, 3000));
+      response = await doFetch();
+    }
+  } catch {
+    await new Promise((r) => setTimeout(r, 3000));
+    response = await doFetch();
+  }
 
   if (response.status === 401 && auth) {
     const refreshed = await tryRefreshToken();
