@@ -38,8 +38,10 @@ form.addEventListener('submit', async (e) => {
     role: document.getElementById('role').value,
   };
 
+  let registered = false;
   try {
     await api.post('/api/auth/register/', payload);
+    registered = true;
     // Ro'yxatdan o'tgach avtomatik login qilamiz
     const loginData = await api.post('/api/auth/login/', {
       username: payload.username,
@@ -48,6 +50,13 @@ form.addEventListener('submit', async (e) => {
     setTokens(loginData.access, loginData.refresh);
     window.location.href = 'dashboard.html';
   } catch (err) {
+    if (registered) {
+      // Akkount muvaffaqiyatli yaratildi, faqat avtomatik-kirish so'rovi (masalan tarmoq
+      // sekinligi tufayli) muvaffaqiyatsiz bo'ldi — foydalanuvchini qo'rqitmasdan login
+      // sahifasiga yo'naltiramiz, u yerda oddiy parol bilan kirishi mumkin.
+      window.location.href = 'login.html';
+      return;
+    }
     if (err instanceof ApiError) {
       showError(formatErrors(err.data));
     } else {

@@ -47,17 +47,23 @@ async function request(path, { method = 'GET', body, auth = false, params } = {}
   const doFetch = () => fetch(url, { method, headers, body: body !== undefined ? JSON.stringify(body) : undefined });
 
   // Render'ning bepul xizmati uzoq turgandan keyin "uyqudan uyg'onadi" — birinchi so'rov
-  // ba'zan vaqt yetishmasligi yoki vaqtinchalik xatolik bilan tugaydi. Shu holatlarda
-  // bir marta kutib, qayta urinib ko'ramiz (foydalanuvchiga darhol xato ko'rsatmasdan).
+  // ba'zan vaqt yetishmasligi yoki vaqtinchalik xatolik bilan tugaydi. Faqat GET (o'qish)
+  // so'rovlarini qayta yuboramiz — POST/PATCH/... kabi yozuvchi so'rovlarni qayta yuborish
+  // xavfli: server so'rovni bajargan, faqat javob mijozga yetib bormagan bo'lishi mumkin
+  // (masalan ro'yxatdan o'tish ikki marta yuborilib, "username band" xatosiga olib keladi).
   let response;
-  try {
-    response = await doFetch();
-    if (response.status >= 502 && response.status <= 504) {
+  if (method === 'GET') {
+    try {
+      response = await doFetch();
+      if (response.status >= 502 && response.status <= 504) {
+        await new Promise((r) => setTimeout(r, 3000));
+        response = await doFetch();
+      }
+    } catch {
       await new Promise((r) => setTimeout(r, 3000));
       response = await doFetch();
     }
-  } catch {
-    await new Promise((r) => setTimeout(r, 3000));
+  } else {
     response = await doFetch();
   }
 
