@@ -242,6 +242,7 @@ function renderSidebar(activePage, user) {
     <div class="sidebar-inner">
       ${link('index.html', '📚', t('courses'), 'courses')}
       ${link('typing-test.html', '⌨️', t('typing'), 'typing')}
+      ${user ? link('homework.html', '📄', t('homework_nav'), 'homework') : ''}
       ${user ? link('dashboard.html', '🏠', t('dashboard'), 'dashboard') : ''}
       ${user ? link('wishlist.html', '♥', t('wishlist_nav'), 'wishlist') : ''}
       ${user ? link('payments.html', '💳', t('payments_nav'), 'payments') : ''}

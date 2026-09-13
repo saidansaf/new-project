@@ -161,6 +161,16 @@ const DICT = {
     referral_invited: 'Taklif qilinganlar',
     // instructor-stats.js — homework
     homework_submissions_title: '📄 Uy vazifalari',
+    // homework.html
+    homework_nav: 'Uy vazifa',
+    homework_title: '📄 Uy vazifalarim',
+    homework_subtitle: "Yozilgan kurslaringizdagi barcha uy vazifalari shu yerda.",
+    homework_empty: "Yozilgan kurslaringizda hali uy vazifalari yo'q.",
+    homework_load_error: "Uy vazifalarni yuklab bo'lmadi.",
+    homework_status_pending: 'Topshirilmagan',
+    homework_status_submitted: 'Topshirildi, tekshirilmoqda',
+    homework_status_graded: 'Baholandi',
+    homework_go_to_course: "Kursga o'tish →",
   },
   en: {
     brand: 'EduNest',
@@ -307,6 +317,15 @@ const DICT = {
     referral_copy_error: 'Could not copy the link.',
     referral_invited: 'Friends invited',
     homework_submissions_title: '📄 Homework',
+    homework_nav: 'Homework',
+    homework_title: '📄 My Homework',
+    homework_subtitle: 'All homework assignments from your enrolled courses, in one place.',
+    homework_empty: "Your enrolled courses don't have any homework yet.",
+    homework_load_error: 'Failed to load homework.',
+    homework_status_pending: 'Not submitted',
+    homework_status_submitted: 'Submitted, awaiting review',
+    homework_status_graded: 'Graded',
+    homework_go_to_course: 'Go to course →',
   },
   ru: {
     brand: 'EduNest',
@@ -453,6 +472,15 @@ const DICT = {
     referral_copy_error: 'Не удалось скопировать.',
     referral_invited: 'Приглашено друзей',
     homework_submissions_title: '📄 Домашние задания',
+    homework_nav: 'Домашнее задание',
+    homework_title: '📄 Мои домашние задания',
+    homework_subtitle: 'Все домашние задания по вашим курсам в одном месте.',
+    homework_empty: 'В ваших курсах пока нет домашних заданий.',
+    homework_load_error: 'Не удалось загрузить домашние задания.',
+    homework_status_pending: 'Не сдано',
+    homework_status_submitted: 'Сдано, на проверке',
+    homework_status_graded: 'Оценено',
+    homework_go_to_course: 'Перейти к курсу →',
   },
 };
 
